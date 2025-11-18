@@ -87,10 +87,10 @@ cumulative_curves <-  ggplot(data = ytd,
   #scale_color_manual(values = cal_palette("kelp1")) +
   #scale_x_date(date_labels = "%b", date_breaks = "months") +
   labs(
-    title = "Cumulative Annual Rainfall (2018-2025 water years)",
+    #title = "Cumulative Annual Rainfall (2018-2025 water years)",
     caption = "Coal Oil Point Reserve \n Lat: 34.41386, Lon: -119.8802",
     y = "Cumulative rainfall (in)",
-    x = ""
+    x = "Date"
   ) +
   theme_bw() +
   theme(
@@ -105,7 +105,12 @@ cumulative_curves <-  ggplot(data = ytd,
 
 cumulative_curves
 
-#ggsave(cumulative_curves, filename = "figures/cumulative_annual_rainfall.png" )
+ggsave(cumulative_curves, filename = "figures/cumulative_annual_rainfall.png",
+       width = 6.5,
+       height = 5, 
+       units = "in")
+
+
 #ggplotly(cumulative_curves)
 
 # simple annual bar graph ----
