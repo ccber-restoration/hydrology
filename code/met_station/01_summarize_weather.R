@@ -17,7 +17,7 @@ dowy = function(x, start.month = 10L){
 dowy(as.Date("2025-09-30"))
 
 #read in NOAA daily summaries
-daily_summaries <- read_csv(file = "data/NOAA_daily_summaries_USW00053152_full.csv") %>% 
+daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
   mutate(year = year(date),
@@ -160,10 +160,6 @@ very_wet_days <- water_year_2025 %>%
 
 #single rainiest day was January 26 2025 with 2.47 inches
 
-temp_fig <- ggplot(data = water_year_2025, aes(x = date, y = tmin)) +
-  geom_line()
-
-temp_fig  
 
 precip_fig <- ggplot(data = water_year_2025, aes(x = date, y = prcp)) +
   geom_col(color = "darkblue") +
@@ -174,6 +170,8 @@ precip_fig <- ggplot(data = water_year_2025, aes(x = date, y = prcp)) +
   theme_cowplot()
   
 precip_fig
+
+ggsave(filename = "figures/2025wy_daily_precip.png", plot = precip_fig)
 
 cumulative_precip_fig <- ggplot(data = water_year_2025, aes(x = date, y = cumulative_prcp)) +
   geom_line(color = "darkblue") +
