@@ -4,7 +4,7 @@ The purpose of this repository is to work with local hydrological data
 
 ## Weather data
 
--  Precipitation (and temperature and soil moisture) are available for the NOAA Weather station at Coal Oil Point Reserve: https://www.ncei.noaa.gov/access/crn/sensors.htm?stationId=1529#precip
+-  Precipitation (and temperature and soil moisture) are available for the NOAA Weather station at Coal Oil Point Reserve (station ID 53152): https://www.ncei.noaa.gov/access/crn/sensors.htm?stationId=1529#precip
 
 
 - Tried using the 'noaa' R package to query NOAA weather data from RStudio, but ran into issues.
@@ -34,6 +34,7 @@ The purpose of this repository is to work with local hydrological data
 - From annual report "we collect dissolved oxygen, conductivity/salinity, and temperature data at three locations on a weekly basis (figures 33-35) using a portable YSI Pro2030 at the three bridges that cross the upper slough: the Marsh trail bridges over the Phelps Creek outlet and “Dilling’s Link” across the east channel, and the Venoco access road bridge"
 
   
+
 
 
 
