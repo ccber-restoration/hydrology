@@ -3,18 +3,22 @@
 ## This script is for combining compensated water level data files and converting to water surface elevation
 
 
-## load libraries ----
+## 0. load libraries ----
 library(tidyverse)
 library(janitor)
 library(cowplot)
 library(scales)
 library(measurements)
 
-# logger elevations ----
+# 1. logger elevations ----
 
 #note that these elevations are in feet
 
 logger_elev <- read_csv("data/leveloggers/logger_elevations_2025wy.csv")
+
+# Pier ----
+
+
 
 # Venoco bridge ----
 
@@ -52,6 +56,10 @@ Venoco_wse_fig <- ggplot(data = venoco_2024_11_13_2025_08_29, aes(x = datetime, 
 Venoco_wse_fig 
 
 ggsave(filename = "figures/Venoco_Bridge_wse_wy25_DRAFT.png", plot = Venoco_wse_fig)
+
+
+# East Bridge ----
+
 
 
 # Phelps Creek - Marymount Bridge  ----
