@@ -105,7 +105,7 @@ cumulative_curves <-  ggplot(data = ytd,
 
 cumulative_curves
 
-ggsave(cumulative_curves, filename = "figures/cumulative_annual_rainfall.png" )
+#ggsave(cumulative_curves, filename = "figures/cumulative_annual_rainfall.png" )
 #ggplotly(cumulative_curves)
 
 # simple annual bar graph ----
@@ -129,7 +129,8 @@ fig_annual_rain <- ggplot(data = annual_rainfall, aes(x = wy, y = total_rainfall
 
 fig_annual_rain
 
-ggsave(plot = fig_annual_rain, filename = "figures/annual_rainfall.png")
+#save to file
+#ggsave(plot = fig_annual_rain, filename = "figures/annual_rainfall.png")
 
 ## 2025-only ----
 water_year_2025 <- daily_summaries %>% 
@@ -159,6 +160,11 @@ very_wet_days <- water_year_2025 %>%
 #3 days with more than 1 inch of rain
 
 #single rainiest day was January 26 2025 with 2.47 inches
+
+#total precip
+sum(water_year_2025$prcp)
+
+#total rainfall for water year = 10.98 inches
 
 
 precip_fig <- ggplot(data = water_year_2025, aes(x = date, y = prcp)) +
