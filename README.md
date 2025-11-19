@@ -32,8 +32,10 @@ The purpose of this repository is to work with local hydrological data
 
 ## Water quality 
 - From annual report "we collect dissolved oxygen, conductivity/salinity, and temperature data at three locations on a weekly basis (figures 33-35) using a portable YSI Pro2030 at the three bridges that cross the upper slough: the Marsh trail bridges over the Phelps Creek outlet and “Dilling’s Link” across the east channel, and the Venoco access road bridge"
+- YSI data are collected in a Survey123 Form ("NCOS YSI Water Quality Monitoring")
 
   
+
 
 
 
