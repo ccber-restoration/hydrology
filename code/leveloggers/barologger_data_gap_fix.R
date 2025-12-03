@@ -131,4 +131,87 @@ phlp<-phlp %>%
     #create datetime variable, first converting date to POSIXct
     datetime = as.POSIXct(date) + time) 
 
-## continue from here, same pattern as above
+## merge with Santa Barbara Airport baropressure df
+phlp_comp<-left_join(phlp,sba,by=join_by(datetime == valid))
+
+## add elevation difference coefficient (see logger_elev) and water column equivalent
+phlp_comp$comp_level_ft<-phlp_comp$level_ft+0.0001785472-phlp_comp$equivalent_ft
+phlp_comp<-phlp_comp %>% 
+  select(datetime,comp_level_ft,temperature)
+
+write.csv(phlp_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Compensated.csv")
+
+## Read in uncompensated Phelps Creek data from 5/10-5/20. Level is in meters.
+phlp_may<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_02.20.24_08.29.25_Uncompensated.csv", skip = 11)
+phlp_may<-phlp_may %>% 
+  clean_names() %>% 
+  mutate(
+    #parse date from character to date format
+    date = mdy(date),
+    level_ft = conv_unit(level, "m", "ft"),
+    #create datetime variable, first converting date to POSIXct
+    datetime = as.POSIXct(date) + time)
+
+## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
+phlp_may$datetime<-round_date(phlp_may$datetime,unit="15 mins")
+phlp_may<-phlp_may%>% 
+  filter(datetime > ymd_hms("2025-05-10 03:30:00") & datetime < ymd_hms("2025-05-20 13:15:00"))
+
+## merge with Santa Barbara Airport baropressure df
+phlp_may_comp<-left_join(phlp_may,sba,by=join_by(datetime == valid))
+
+## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+phlp_may_comp$comp_level_ft<-phlp_may_comp$level_ft+0.0001785472-phlp_may_comp$equivalent_ft
+phlp_may_comp<-phlp_may_comp %>% 
+  select(datetime,comp_level_ft,temperature)
+
+write.csv(phlp_may_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_05.10.25_05.20.25_Compensated.csv")
+
+# 5. Pier ----
+
+## Read in Pier data from 8/29-11/13. Level is in meters.
+pier<-read_csv("data/leveloggers/Pier/PIER_08.29.25_11.13.25_Uncompensated.csv", skip = 13)
+pier<-pier %>% 
+  clean_names() %>% 
+  mutate(
+    #parse date from character to date format
+    date = mdy(date),
+    level_ft = conv_unit(level, "m", "ft"),
+    #create datetime variable, first converting date to POSIXct
+    datetime = as.POSIXct(date) + time) 
+
+## merge with Santa Barbara Airport baropressure df
+pier_comp<-left_join(pier,sba,by=join_by(datetime == valid))
+
+## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+pier_comp$comp_level_ft<-pier_comp$level_ft-0.0106570581-pier_comp$equivalent_ft
+pier_comp<-pier_comp %>% 
+  select(datetime,comp_level_ft,temperature,con_uctivity)
+
+write.csv(pier_comp,"data/leveloggers/Pier/PIER_08.29.25_11.13.25_Compensated.csv")
+
+## Read in uncompensated Pier data from 5/10-5/20. Level is in meters.
+pier_may<-read_csv("data/leveloggers/Pier/PIER_10.10.23_08.29.25_Uncompensated.csv", skip = 13)
+pier_may<-pier_may %>% 
+  clean_names() %>% 
+  mutate(
+    #parse date from character to date format
+    date = mdy(date),
+    level_ft = conv_unit(level, "m", "ft"),
+    #create datetime variable, first converting date to POSIXct
+    datetime = as.POSIXct(date) + time)
+
+## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
+pier_may$datetime<-round_date(pier_may$datetime,unit="15 mins")
+pier_may<-pier_may%>% 
+  filter(datetime > ymd_hms("2025-05-10 03:30:00") & datetime < ymd_hms("2025-05-20 13:15:00"))
+
+## merge with Santa Barbara Airport baropressure df
+pier_may_comp<-left_join(pier_may,sba,by=join_by(datetime == valid))
+
+## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+pier_may_comp$comp_level_ft<-pier_may_comp$level_ft-0.0106570581-pier_may_comp$equivalent_ft
+pier_may_comp<-pier_may_comp %>% 
+  select(datetime,comp_level_ft,temperature,conductivity)
+
+write.csv(pier_may_comp,"data/leveloggers/Pier/PIER_05.10.25_05.20.25_Compensated.csv")
