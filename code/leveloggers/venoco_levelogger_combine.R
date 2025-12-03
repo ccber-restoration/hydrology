@@ -1,6 +1,19 @@
+# =============================================================================
+# Name:           venoco_levelogger_combine.R
+# Description:    combines compensated water level data files and converts to water surface elevation
+# Author(s):      Francis Joyce, Claire WS
+
+# Inputs:         
+# Outputs:        
+# 
+# Notes:          
+#                 
+# =============================================================================
+
+
 ## 2025-11-18
 ## Francis Joyce
-## This script is for combining compensated water level data files and converting to water surface elevation
+## This script is for 
 
 
 ## 0. load libraries ----
