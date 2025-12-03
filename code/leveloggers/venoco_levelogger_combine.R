@@ -60,7 +60,8 @@ ggsave(filename = "figures/Venoco_Bridge_wse_wy25_DRAFT.png", plot = Venoco_wse_
 
 # East Bridge ----
 
-
+# we have data up to 11/13/24 due to a levelogger malfunction. instrument was
+# replaced on 10/22/25. data collection at this location continues from then on.
 
 # Phelps Creek - Marymount Bridge  ----
 
