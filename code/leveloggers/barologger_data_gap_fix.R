@@ -1,3 +1,17 @@
+# =============================================================================
+# Name:           venoco_levelogger_combine.R
+# Description:    Uses SBA air pressure data to manually compensate levelogger data
+
+
+# Author(s):      Claire WS
+
+# Inputs:         SBA altimeter data (units = inches of mercury)             
+# Outputs:        Individual compensated levelogger csvs
+# 
+# Notes:          
+#                 
+# =============================================================================
+
 library(dplyr)
 library(janitor)
 library(tidyverse)
@@ -10,10 +24,10 @@ library(measurements)
 ## Read in data from Santa Barbara Airport weather station. We are missing
 ## barologger data from 5/10 through 5/20 and from 8/29 through the rest of the WY.
 ## source: https://mesonet.agron.iastate.edu/request/download.phtml?network=CA_ASOS
-sba<-read_csv("data/NOAA_weather_station/SantaBarbaraAirport_altimeter_05.10.2025_11.26.2025.csv")
-sba$valid<-mdy_hm(sba$valid)
-sba <- sba %>%
+
+sba<-read_csv("data/SBA/SantaBarbaraAirport_altimeter_2025.05.10_2025.11.26.csv") %>% 
   mutate(
+    valid = mdy_hm(valid),
     Date = date(valid),
     Time = as_hms(valid)
   )
@@ -41,13 +55,18 @@ sba <- sba %>%
 ## according to the station metadata) and convert to kPa. Multiply altimeter by
 ## a constant equal to ((288 - 0.0065 x h)/288)^2 where h is the elevation in m.
 
+#constant:
+constant <- ((288- 0.0065*3)/288)^2
+constant
+
 sba$baropressure_inHg<-sba$altimeter*0.9996441697
 sba
 
 ## Since the station is at sea level, the difference is negligible.
 ## Convert from inches of mercury (inHg) to kilopascals (kPa).
 sba$baropressure_kPa<-sba$baropressure_inHg / 10 * 33.8639
-sba
+
+#sba$baropressure_kPa_chk <- sba$baropressure_inHg *3.386389 
 
 ## Levellogger manual provides conversion factor for kPa to water column equivalent
 ## feet and meters.
@@ -55,7 +74,8 @@ sba$equivalent_ft<-sba$baropressure_kPa*0.334553
 sba$equivalent_m<-sba$baropressure_kPa*0.101972
 sba
 
-write.csv(sba,"data/NOAA_weather_station/SBA_baropressure_05.10.2025_11.26.2025.csv")
+#write to file
+write_csv(sba,"data/SBA/SBA_baropressure_2025.05.10_2025.11.26.csv")
 
 # 2. Manual Barometric Compensation ----
 
@@ -71,58 +91,54 @@ logger_elev
 
 # 3. Venoco Bridge -----
 
-## Read in Venoco Bridge data from 8/29-10/22. Level is in meters.
-venoco<-read_csv("data/leveloggers/Venoco_Bridge/Venoco_08.29.25_10.22.25_Uncompensated.csv", skip = 11)
-venoco<-venoco %>% 
-clean_names() %>% 
+## Read in Venoco Bridge data from 8/29-10/22 2025. Level is in meters.
+venoco<-read_csv("data/leveloggers/Venoco_Bridge/Venoco_08.29.25_10.22.25_Uncompensated.csv", skip = 11) %>%
+  clean_names() %>%
   mutate(
     #parse date from character to date format
     date = mdy(date),
     level_ft = conv_unit(level, "m", "ft"),
     #create datetime variable, first converting date to POSIXct
-    datetime = as.POSIXct(date) + time) 
+    datetime = as.POSIXct(date) + time
+  ) 
 
 ## merge with Santa Barbara Airport baropressure df
-venoco_comp<-left_join(venoco,sba,by=join_by(datetime == valid))
-
-## subtract elevation difference coefficient (see logger_elev) and water column equivalent
-venoco_comp$comp_level_ft<-venoco_comp$level_ft-0.0084800484-venoco_comp$equivalent_ft
-venoco_comp<-venoco_comp %>% 
+venoco_comp<-left_join(venoco,sba,by=join_by(datetime == valid)) %>% 
+  # subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft - 0.0084800484 - equivalent_ft) %>% 
+  #keep key columns
   select(datetime,comp_level_ft,temperature)
-  
-write.csv(venoco_comp,"data/leveloggers/Venoco_Bridge/Venoco_08.29.25_10.22.25_Compensated.csv")
+
+#FHJ- write_csv() to not write rownames (numbers)
+write_csv(venoco_comp,"data/leveloggers/Venoco_Bridge/Venoco_08.29.25_10.22.25_Compensated.csv")
 
 ## Read in uncompensated Venoco Bridge data from 5/10-5/20. Level is in meters.
-venoco_may<-read_csv("data/leveloggers/Venoco_Bridge/Venoco_11.13.24_8.29.25_Uncompensated.csv", skip = 11)
-venoco_may<-venoco_may %>% 
+venoco_may<-read_csv("data/leveloggers/Venoco_Bridge/Venoco_11.13.24_8.29.25_Uncompensated.csv", skip = 11) %>% 
   clean_names() %>% 
   mutate(
     #parse date from character to date format
     date = mdy(date),
     level_ft = conv_unit(level, "m", "ft"),
     #create datetime variable, first converting date to POSIXct
-    datetime = as.POSIXct(date) + time)
-
-## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 12:45 pm.
-venoco_may$datetime<-floor_date(venoco_may$datetime,unit="minute")
-venoco_may<-venoco_may%>% 
+    datetime = as.POSIXct(date) + time) %>% 
+  #round datetime down to nearest minute
+  #FIXME- maybe use round_date() instead, unless there is a reason to round down??
+  mutate(datetime = floor_date(datetime, unit="minute")) %>% 
+  ## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 12:45 pm.
   filter(datetime > ymd_hms("2025-05-10 03:45:00") & datetime < ymd_hms("2025-05-20 12:45:00"))
 
 ## merge with Santa Barbara Airport baropressure df
-vnc_may_comp<-left_join(venoco_may,sba,by=join_by(datetime == valid))
-
-## subtract elevation difference coefficient (see logger_elev) and water column equivalent
-vnc_may_comp$comp_level_ft<-vnc_may_comp$level_ft-0.0084800484-vnc_may_comp$equivalent_ft
-vnc_may_comp<-vnc_may_comp %>% 
+vnc_may_comp<-left_join(venoco_may,sba,by=join_by(datetime == valid)) %>% 
+  ## subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft- 0.0084800484- equivalent_ft) %>%
   select(datetime,comp_level_ft,temperature)
 
-write.csv(vnc_may_comp,"data/leveloggers/Venoco_Bridge/Venoco_05.10.25_05.20.25_Compensated.csv")
+write_csv(vnc_may_comp,"data/leveloggers/Venoco_Bridge/Venoco_05.10.25_05.20.25_Compensated.csv")
 
 # 4. Phelps Creek ----
 
 ## Read in Phelps data from 8/29-11/13. Level is in meters.
-phlp<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Uncompensated.csv", skip = 11)
-phlp<-phlp %>% 
+phlp<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Uncompensated.csv", skip = 11) %>% 
   clean_names() %>% 
   mutate(
     #parse date from character to date format
@@ -132,47 +148,44 @@ phlp<-phlp %>%
     datetime = as.POSIXct(date) + time) 
 
 ## merge with Santa Barbara Airport baropressure df
-phlp_comp<-left_join(phlp,sba,by=join_by(datetime == valid))
-
-## add elevation difference coefficient (see logger_elev) and water column equivalent
-phlp_comp$comp_level_ft<-phlp_comp$level_ft+0.0001785472-phlp_comp$equivalent_ft
-phlp_comp<-phlp_comp %>% 
+phlp_comp<-left_join(phlp,sba,by=join_by(datetime == valid)) %>% 
+  ## add elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft+ 0.0001785472- equivalent_ft ) %>% 
   select(datetime,comp_level_ft,temperature)
 
-write.csv(phlp_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Compensated.csv")
+write_csv(phlp_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Compensated.csv")
 
 ## Read in uncompensated Phelps Creek data from 5/10-5/20. Level is in meters.
-phlp_may<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_02.20.24_08.29.25_Uncompensated.csv", skip = 11)
-phlp_may<-phlp_may %>% 
+phlp_may<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_02.20.24_08.29.25_Uncompensated.csv", skip = 11) %>% 
   clean_names() %>% 
   mutate(
     #parse date from character to date format
     date = mdy(date),
+    #new water level column in ft
     level_ft = conv_unit(level, "m", "ft"),
     #create datetime variable, first converting date to POSIXct
-    datetime = as.POSIXct(date) + time)
-
-## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
-phlp_may$datetime<-round_date(phlp_may$datetime,unit="15 mins")
-phlp_may<-phlp_may%>% 
+    datetime = as.POSIXct(date) + time) %>% 
+  #round datetime to nearest 15 min
+  mutate(datetime = round_date(datetime,unit="15 mins")) %>% 
+  # Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
   filter(datetime > ymd_hms("2025-05-10 03:30:00") & datetime < ymd_hms("2025-05-20 13:15:00"))
 
 ## merge with Santa Barbara Airport baropressure df
-phlp_may_comp<-left_join(phlp_may,sba,by=join_by(datetime == valid))
-
-## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
-phlp_may_comp$comp_level_ft<-phlp_may_comp$level_ft+0.0001785472-phlp_may_comp$equivalent_ft
-phlp_may_comp<-phlp_may_comp %>% 
+phlp_may_comp<-left_join(phlp_may,sba,by=join_by(datetime == valid)) %>% 
+  ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft+0.0001785472-equivalent_ft) %>% 
   select(datetime,comp_level_ft,temperature)
 
-write.csv(phlp_may_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_05.10.25_05.20.25_Compensated.csv")
+#write to file
+write_csv(phlp_may_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_05.10.25_05.20.25_Compensated.csv")
 
 # 5. Pier ----
 
 ## Read in Pier data from 8/29-11/13. Level is in meters.
-pier<-read_csv("data/leveloggers/Pier/PIER_08.29.25_11.13.25_Uncompensated.csv", skip = 13)
-pier<-pier %>% 
-  clean_names() %>% 
+pier<-read_csv("data/leveloggers/Pier/PIER_08.29.25_11.13.25_Uncompensated.csv", skip = 13) %>% 
+  clean_names() %>%
+  #fix conductivity column spelling
+  rename(conductivity = con_uctivity) %>% 
   mutate(
     #parse date from character to date format
     date = mdy(date),
@@ -181,29 +194,25 @@ pier<-pier %>%
     datetime = as.POSIXct(date) + time) 
 
 ## merge with Santa Barbara Airport baropressure df
-pier_comp<-left_join(pier,sba,by=join_by(datetime == valid))
+pier_comp<-left_join(pier,sba,by=join_by(datetime == valid)) %>% 
+  # add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft- 0.0106570581- equivalent_ft) %>% 
+  select(datetime,comp_level_ft,temperature,conductivity)
 
-## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
-pier_comp$comp_level_ft<-pier_comp$level_ft-0.0106570581-pier_comp$equivalent_ft
-pier_comp<-pier_comp %>% 
-  select(datetime,comp_level_ft,temperature,con_uctivity)
-
-write.csv(pier_comp,"data/leveloggers/Pier/PIER_08.29.25_11.13.25_Compensated.csv")
+write_csv(pier_comp,"data/leveloggers/Pier/PIER_08.29.25_11.13.25_Compensated.csv")
 
 ## Read in uncompensated Pier data from 5/10-5/20. Level is in meters.
-pier_may<-read_csv("data/leveloggers/Pier/PIER_10.10.23_08.29.25_Uncompensated.csv", skip = 13)
-pier_may<-pier_may %>% 
+pier_may<-read_csv("data/leveloggers/Pier/PIER_10.10.23_08.29.25_Uncompensated.csv", skip = 13) %>% 
   clean_names() %>% 
   mutate(
     #parse date from character to date format
     date = mdy(date),
     level_ft = conv_unit(level, "m", "ft"),
     #create datetime variable, first converting date to POSIXct
-    datetime = as.POSIXct(date) + time)
-
-## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
-pier_may$datetime<-round_date(pier_may$datetime,unit="15 mins")
-pier_may<-pier_may%>% 
+    datetime = as.POSIXct(date) + time) %>% 
+  #round datetime to nearest 15 min  
+  mutate(datetime = round_date(datetime,unit="15 mins")) %>% 
+  ## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 1 pm.
   filter(datetime > ymd_hms("2025-05-10 03:30:00") & datetime < ymd_hms("2025-05-20 13:15:00"))
 
 ## merge with Santa Barbara Airport baropressure df
@@ -211,7 +220,8 @@ pier_may_comp<-left_join(pier_may,sba,by=join_by(datetime == valid))
 
 ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
 pier_may_comp$comp_level_ft<-pier_may_comp$level_ft-0.0106570581-pier_may_comp$equivalent_ft
+
 pier_may_comp<-pier_may_comp %>% 
   select(datetime,comp_level_ft,temperature,conductivity)
 
-write.csv(pier_may_comp,"data/leveloggers/Pier/PIER_05.10.25_05.20.25_Compensated.csv")
+write_csv(pier_may_comp,"data/leveloggers/Pier/PIER_05.10.25_05.20.25_Compensated.csv")
