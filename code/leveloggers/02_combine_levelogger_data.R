@@ -18,6 +18,7 @@ library(janitor)
 library(cowplot)
 library(scales)
 library(measurements)
+library(hms)
 
 #interactive plots for exploration
 library(plotly)
@@ -248,6 +249,12 @@ wse_2025_combined <- bind_rows(pier_20240319_20251113,
 wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = station)) +
   geom_line() +
   theme_cowplot() +
+  theme(legend.position = c(0.05, 0.65),
+        legend.box.background = element_rect(color = "black", 
+                                             fill = "white", 
+                                             linewidth = 0.5, 
+                                             linetype = "solid"),
+        legend.box.margin = margin(t = 4, r = 4, b = 4, l = 4)) +
   ylab("Water surface elevation (ft)") +
   xlab("Date") +
   scale_y_continuous(limits = c(0,NA), 
