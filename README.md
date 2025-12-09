@@ -8,7 +8,7 @@ The purpose of this repository is to work with local hydrological data
 
 
 - Tried using the 'noaa' R package to query NOAA weather data from RStudio, but ran into issues.
-- Instead downloaded data from https://www.ncdc.noaa.gov/cdo-web/search (station ID 53152)
+- Instead downloaded data ("daily summaries" data set) from https://www.ncdc.noaa.gov/cdo-web/search (station ID 53152)
 
 ## Water level monitoring
 
@@ -35,6 +35,7 @@ The purpose of this repository is to work with local hydrological data
 - YSI data are collected in a Survey123 Form ("NCOS YSI Water Quality Monitoring")
 
   
+
 
 
 
