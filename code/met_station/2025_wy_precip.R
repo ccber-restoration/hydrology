@@ -1,3 +1,17 @@
+# =============================================================================
+# Name:           2025_wy_precip.R
+# Description:    summarizes rainfall data from the COPR weather station for the 2025 water year
+
+# Author(s):      Francis Joyce
+
+# Inputs:         csv in data/NOAA_weather_station        
+# Outputs:        daily rainfall figure, summaries for text     
+# 
+# Notes:         
+#                 
+# =============================================================================
+
+
 library(tidyverse)
 library(janitor)
 library(cowplot)
