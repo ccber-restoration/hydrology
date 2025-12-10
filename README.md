@@ -26,6 +26,7 @@ The purpose of this repository is to work with local hydrological data
 ## Tidal data
 
 - Use NOAA tidal predictions (for station 9411340 Santa Barbara, CA) to compare against slough water levels for periods when the slough breached and was under tidal influence: https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=9411340
+- **Important**: when downloading and using tidal predictions, make sure to use the appropriate datum. The default is mean lower low water (MLLW), but for comparisons to levelogger water surface elevation, need to select NAVD.
 
 ## Vernal Pool hydrology
 - Water level in vernal pools is manually monitored.
@@ -35,6 +36,7 @@ The purpose of this repository is to work with local hydrological data
 - YSI data are collected in a Survey123 Form ("NCOS YSI Water Quality Monitoring")
 
   
+
 
 
 
