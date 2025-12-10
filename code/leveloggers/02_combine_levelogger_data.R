@@ -241,12 +241,14 @@ Phelps_wse_fig
 wse_2025_combined <- bind_rows(pier_20240319_20251113, 
                                venoco_2024_11_13_2025_10_22,
                                phelps_wy_25) %>% 
-  select(-c(conductivity, time, level)) %>% 
+  select(-c(conductivity, time, level)) 
+
+wse_2025_combined_daily_mean <- wse_2025_combined %>% 
   #aggregate by taking mean of daily wse, to smooth out figure
   group_by(date, station) %>% 
   summarize(wse= mean(wse))
 
-wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = station)) +
+wse_fig <- ggplot(data = wse_2025_combined_daily_mean, aes(x = date, y = wse, color = station)) +
   geom_line() +
   theme_cowplot() +
   theme(legend.position = c(0.05, 0.65),
@@ -259,16 +261,16 @@ wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = stati
   xlab("Date") +
   scale_y_continuous(limits = c(0,NA), 
                      breaks = breaks_width(2)) +
-  scale_x_date(date_breaks =  "2 month", 
+  scale_x_date(date_breaks =  "3 month", 
                    date_minor_breaks = "1 month",
                    date_labels = "%b %Y",
-                   limits = c(wy_2025_start_date, wy_2025_end_date))
+                   limits = c(wy_2025_start_date, wy_2025_end_date),
+               expand = c(0,NA))
 
 wse_fig
 
 #existing precipitation figure from "01_summarize_weather.R" script
-
-source("code/met_station/02_2025_wy_precip.R")
+source("code/met_station/2025_wy_precip.R")
 
 precip_fig 
 
@@ -278,15 +280,22 @@ wse_precip_fig <- plot_grid(
     axis.text.x = element_blank(),
     axis.title.x = element_blank()
     ),
-  precip_fig,
-  nrow = 2
+  precip_fig + scale_x_date(limits = c(wy_2025_start_date, wy_2025_end_date),
+                            expand = c(0,NA),
+                            date_breaks = "3 month",
+                            date_labels = "%b %Y"),
+  nrow = 2,
+  align = "v"
 )
 
 wse_precip_fig
 
 #save to file
-# TODO- add dimensions to call
 ggsave(filename = paste("figures/2025_wy_wse_precip_",
                                     format(Sys.time(), "%Y-%m-%d"),
                                      ".pdf"), 
-                                    plot = wse_precip_fig)
+                                    plot = wse_precip_fig,
+       width = 8.6,
+       height = 6.4,
+       units = "in"
+       )
