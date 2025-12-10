@@ -243,8 +243,8 @@ wse_2025_combined <- bind_rows(pier_20240319_20251113,
                                phelps_wy_25) %>% 
   select(-c(conductivity, time, level)) 
 
+#aggregate by taking mean of daily wse, to smooth out figure
 wse_2025_combined_daily_mean <- wse_2025_combined %>% 
-  #aggregate by taking mean of daily wse, to smooth out figure
   group_by(date, station) %>% 
   summarize(wse= mean(wse))
 
@@ -268,6 +268,40 @@ wse_fig <- ggplot(data = wse_2025_combined_daily_mean, aes(x = date, y = wse, co
                expand = c(0,NA))
 
 wse_fig
+
+#figure without smoothing
+wse_raw_fig <- wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = station)) +
+  geom_line() +
+  theme_cowplot() +
+  theme(legend.position = c(0.05, 0.65),
+        legend.box.background = element_rect(color = "black", 
+                                             fill = "white", 
+                                             linewidth = 0.5, 
+                                             linetype = "solid"),
+        legend.box.margin = margin(t = 4, r = 4, b = 4, l = 4)) +
+  ylab("Water surface elevation (ft)") +
+  xlab("Date") +
+  scale_y_continuous(limits = c(0,NA), 
+                     breaks = breaks_width(2)) +
+  scale_x_date(date_breaks =  "1 month", 
+               date_minor_breaks = "1 month",
+               date_labels = "%b",
+               limits = c(wy_2025_start_date, wy_2025_end_date),
+               expand = c(0,NA))
+
+
+wse_raw_fig
+
+ggsave(filename = paste("figures/2025_wy_wse_raw_",
+                        format(Sys.time(), "%Y-%m-%d"),
+                        ".pdf"), 
+       plot = wse_raw_fig,
+       width = 8.6,
+       height = 5,
+       units = "in"
+)
+
+
 
 #existing precipitation figure from "01_summarize_weather.R" script
 source("code/met_station/2025_wy_precip.R")
