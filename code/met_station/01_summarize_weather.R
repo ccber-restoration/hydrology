@@ -1,3 +1,16 @@
+# =============================================================================
+# Name:           01_summarize_weather.R
+# Description:    summarizes rainfall data from the Coal Oil Point Reserve NOAA weather station
+
+# Author(s):      Francis Joyce
+
+# Inputs: csv in data/NOAA_weather_station        
+# Outputs:        figures of cumulative annual rainfall        
+# 
+# Notes:         This script is intended to summarize all years, not a single year 
+#                 
+# =============================================================================
+
 library(tidyverse)
 library(janitor)
 library(cowplot)
@@ -45,7 +58,8 @@ ytd <- daily_summaries %>%
   filter(wy >= 2018)
 
 
-#create data frame of dates for first day in each month to use as tick marks & labels. Note that 2016 is a leap year.
+#create data frame of dates for first day in each month to use as tick marks & labels. 
+#Note that 2016 is a leap year.
 tickmarks <- date(
   c(
     "2015-10-01",
