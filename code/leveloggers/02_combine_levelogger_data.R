@@ -273,7 +273,7 @@ wse_fig
 wse_raw_fig <- wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = station)) +
   geom_line() +
   theme_cowplot() +
-  theme(legend.position = c(0.05, 0.65),
+  theme(legend.position = c(0.05, 0.5),
         legend.box.background = element_rect(color = "black", 
                                              fill = "white", 
                                              linewidth = 0.5, 
@@ -297,7 +297,7 @@ ggsave(filename = paste("figures/2025_wy_wse_raw_",
                         ".pdf"), 
        plot = wse_raw_fig,
        width = 8.6,
-       height = 5,
+       height = 6,
        units = "in"
 )
 
