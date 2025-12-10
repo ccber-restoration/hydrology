@@ -17,7 +17,7 @@ dowy = function(x, start.month = 10L){
 dowy(as.Date("2025-09-30"))
 
 #read in NOAA daily summaries
-daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full.csv") %>% 
+daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-09.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
   mutate(year = year(date),
@@ -38,7 +38,7 @@ ytd <- daily_summaries %>%
   group_by(wy, .drop = FALSE) %>%
   mutate(cumulative_rain = cumsum(prcp)) %>% 
   ungroup() %>%
-  # create column with "year" label
+  # create column with "year" label that will be plotted on last day of wy
   mutate(year_label = case_when(
     month == 9 & day == 30 ~ year
   )) %>% 
@@ -105,7 +105,12 @@ cumulative_curves <-  ggplot(data = ytd,
 
 cumulative_curves
 
-ggsave(cumulative_curves, filename = "figures/cumulative_annual_rainfall.png",
+ggsave(cumulative_curves, 
+       filename = paste("figures/rainfall/cumulative_annual_rainfall",
+                        format(Sys.time(), "%Y-%m-%d"),
+                        ".pdf"),
+       
+       
        width = 6.5,
        height = 5, 
        units = "in")
