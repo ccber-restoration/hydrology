@@ -58,6 +58,17 @@ ytd <- daily_summaries %>%
   filter(wy >= 2018)
 
 
+ytd_all_time <- daily_summaries %>%
+  group_by(wy, .drop = FALSE) %>%
+  mutate(cumulative_rain = cumsum(prcp)) %>% 
+  ungroup() %>%
+  # create column with "year" label that will be plotted on last day of wy
+  mutate(year_label = case_when(
+    month == 9 & day == 30 ~ year
+  )) %>% 
+  #filter out 2008 since that was a partial year, missed rainy season
+  filter(wy > 2008)
+
 #create data frame of dates for first day in each month to use as tick marks & labels. 
 #Note that 2016 is a leap year.
 tickmarks <- date(
@@ -132,6 +143,46 @@ ggsave(cumulative_curves,
 
 #ggplotly(cumulative_curves)
 
+# all years - cumulative curves
+cumulative_curves_all <-  ggplot(data = ytd_all_time,
+                             aes(
+                               x = dowy,
+                               y = cumulative_rain,
+                               group = wy,
+                               color = wy
+                             )) +
+  geom_line(linewidth = 1) +
+  scale_x_continuous(breaks = doy$dowy,
+                     labels = doy$mon,
+                     limits = c(0, 400)) +
+  scale_y_continuous(breaks = seq(0,30, by = 5), expand = c(0,1)) +
+  #  geom_text(aes(x = JD + 5, y = cum_rain, label = year_label), hjust = 0) +
+  geom_text_repel(aes(x = dowy + 4, y = cumulative_rain, label = year_label), direction = c("y"), hjust = 0, size = 5) +
+  #scale_colour_viridis_c() +
+  #scale_color_manual(values = cal_palette("kelp1")) +
+  #scale_x_date(date_labels = "%b", date_breaks = "months") +
+  labs(
+    #title = "Cumulative Annual Rainfall (2018-2025 water years)",
+    caption = "Coal Oil Point Reserve \n Lat: 34.41386, Lon: -119.8802",
+    y = "Cumulative rainfall (in)",
+    x = "Date"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    axis.ticks.length.x = unit(0.5, "cm"),
+    axis.text.x = element_text(vjust = 5.5,
+                               hjust = -0.2),
+    panel.grid = element_line(color = "white"), 
+    legend.position = "none"
+  )
+#scale_y_continuous(limits = c(0,300))
+
+cumulative_curves_all
+
+ggplotly(cumulative_curves_all)
+
+
 # simple annual bar graph ----
 
 annual_rainfall <- daily_summaries %>% 
@@ -140,6 +191,13 @@ annual_rainfall <- daily_summaries %>%
             ndays = n()) %>%   
   #filter years
   filter(wy >2017 & wy <2026) 
+
+annual_rainfall_all <- daily_summaries %>% 
+  group_by(wy) %>% 
+  summarize(total_rainfall = sum(prcp),
+            ndays = n()) %>%   
+  #filter years
+  filter(wy >2008) 
 
 #create bar plot
 fig_annual_rain <- ggplot(data = annual_rainfall, aes(x = wy, y = total_rainfall)) +
@@ -155,3 +213,15 @@ fig_annual_rain
 
 #save to file
 #ggsave(plot = fig_annual_rain, filename = "figures/annual_rainfall.png")
+
+
+fig_annual_rain_all <- ggplot(data = annual_rainfall_all, aes(x = wy, y = total_rainfall)) +
+  geom_col(fill = "darkblue") +
+  #geom_line() +
+  scale_y_continuous(expand = c(0,NA), breaks = breaks_width(5)) +
+  scale_x_continuous(breaks = breaks_width(1), expand = c(0,0)) +
+  theme_cowplot() +
+  ylab("Total rainfall (in)") +
+  xlab("Water year")
+
+fig_annual_rain_all
