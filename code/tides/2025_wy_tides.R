@@ -21,10 +21,18 @@ tides_2025_02 <- read_delim(file = "data/NOAA_tide_predictions/NOAA_tide_preds_N
   select(date:pred) %>% 
   mutate(datetime = as.POSIXct(date) + time)
 
+tides_2025_03 <- read_delim(file = "data/NOAA_tide_predictions/NOAA_tide_preds_NAVD_20250311_20250410.txt",
+                            skip = 14,
+                            delim = "\t",
+                            col_names = c("date", "day", "time", "pred")) %>% 
+  select(date:pred) %>% 
+  mutate(datetime = as.POSIXct(date) + time)
+
+tides_2025 <- bind_rows(tides_2025_02, tides_2025_03)
 
 #quick plot
 
-tide_plot_2025_02 <- ggplot(data = tides_2025_02, aes(x = datetime, y = pred)) +
+tide_plot_2025_02 <- ggplot(data = tides_2025, aes(x = datetime, y = pred)) +
   geom_line()
 
 tide_plot_2025_02
