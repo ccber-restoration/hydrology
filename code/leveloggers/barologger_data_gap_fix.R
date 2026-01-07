@@ -215,3 +215,16 @@ pier_may_comp<-pier_may_comp %>%
   select(datetime,comp_level_ft,temperature,conductivity)
 
 write.csv(pier_may_comp,"data/leveloggers/Pier/PIER_05.10.25_05.20.25_Compensated.csv")
+
+# 5. COPR Dune Pond ----
+
+## Read in Dune Pond data from 8/29-11/13. Level is in meters.
+dp<-read_csv("data/leveloggers/Dune_Pond/2171471_Dune_Pond_23.04.20_25.09.02_Uncompensated.csv", skip = 11)
+dp<-dp %>% 
+  clean_names() %>% 
+  mutate(
+    #parse date from character to date format
+    date = mdy(date),
+    level_ft = conv_unit(level, "m", "ft"),
+    #create datetime variable, first converting date to POSIXct
+    datetime = as.POSIXct(date) + time) 
