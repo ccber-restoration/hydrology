@@ -4,11 +4,12 @@ The purpose of this repository is to work with local hydrological data
 
 ## Weather data
 
--  Precipitation (and temperature and soil moisture) are available for the NOAA Weather station at Coal Oil Point Reserve (station ID 53152): https://www.ncei.noaa.gov/access/crn/sensors.htm?stationId=1529#precip
-
-
-- Tried using the 'noaa' R package to query NOAA weather data from RStudio, but ran into issues.
-- Instead downloaded data from https://www.ncdc.noaa.gov/cdo-web/search (station ID 53152)
+-  Precipitation (and temperature and soil moisture) are available for the NOAA Weather station at Coal Oil Point Reserve (**station ID 53152**):
+    -  https://www.ncei.noaa.gov/access/crn/sensors.htm?stationId=1529#precip
+    -  Tried using the 'noaa' R package to query NOAA weather data from RStudio, but ran into issues.
+    -  Instead downloaded data ("daily summaries" data set) from https://www.ncdc.noaa.gov/cdo-web/search
+    -  Also see https://www.ncdc.noaa.gov/cdo-web/datasets/GHCND/stations/GHCND:USW00053152/detail
+    -  Started having issues with this system, so an alternative is downloading txt files directly via https://www.ncei.noaa.gov/access/crn/products.html 
 
 ## Water level monitoring
 
@@ -26,6 +27,7 @@ The purpose of this repository is to work with local hydrological data
 ## Tidal data
 
 - Use NOAA tidal predictions (for station 9411340 Santa Barbara, CA) to compare against slough water levels for periods when the slough breached and was under tidal influence: https://tidesandcurrents.noaa.gov/noaatidepredictions.html?id=9411340
+- **Important**: when downloading and using tidal predictions, make sure to use the appropriate datum. The default is mean lower low water (MLLW), but for comparisons to levelogger water surface elevation, need to select NAVD.
 
 ## Vernal Pool hydrology
 - Water level in vernal pools is manually monitored.
@@ -35,6 +37,10 @@ The purpose of this repository is to work with local hydrological data
 - YSI data are collected in a Survey123 Form ("NCOS YSI Water Quality Monitoring")
 
   
+
+
+
+
 
 
 
