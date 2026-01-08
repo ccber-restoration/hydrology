@@ -239,3 +239,12 @@ dp<-read_csv("data/leveloggers/Dune_Pond/2171471_Dune_Pond_23.04.20_25.09.02_Unc
   mutate(datetime = floor_date(datetime, unit="minute")) %>% 
   ## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 12:45 pm.
   filter(datetime > ymd_hms("2025-05-10 03:45:00") & datetime < ymd_hms("2025-05-20 12:45:00"))
+
+## merge with Santa Barbara Airport baropressure df
+dp_comp<-left_join(dp,sba,by=join_by(datetime == valid))
+
+## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+dp_comp$comp_level_ft<-dp_comp$level_ft-0.0050332688-dp_comp$equivalent_ft
+
+dp_comp<-dp_comp %>% 
+  select(datetime,comp_level_ft,temperature)
