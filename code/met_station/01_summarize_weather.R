@@ -30,7 +30,7 @@ dowy = function(x, start.month = 10L){
 dowy(as.Date("2025-09-30"))
 
 #read in NOAA daily summaries
-daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-09.csv") %>% 
+daily_rain_2025_11_30 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-09.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
   mutate(year = year(date),
@@ -42,12 +42,49 @@ daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summari
   mutate(wy = case_when(
     month >= 10 ~ year + 1,
     .default = year
-  ))
+  )) %>% 
+  filter(!(year == 2025 & month == 12))
+
+
+daily_rain_2025_12 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-30.csv") %>% 
+  clean_names() %>% 
+  #create columns for month and year
+  mutate(year = year(date),
+         month = month(date),
+         day = day(date),
+         #create column for "day of water year"
+         dowy = dowy(date)) %>% 
+  #create column for wateryear
+  mutate(wy = case_when(
+    month >= 10 ~ year + 1,
+    .default = year
+  )) 
+
+
+#combine:
+daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2025_12)
+
+
+
+#read in txt files ----
+
+#get headers
+headers <- read_lines("data/NOAA_weather_station/ncei/headers.txt")
+
+header_L2 <- headers[2]
+
+header_L2
+
+header_vector <- strsplit(header_L2, split = " ")[[1]]
+
+daily_summaries_2025 <- read_table(file = "data/NOAA_weather_station/ncei/CRND0103-2025-CA_Santa_Barbara_11_W.txt",
+                                   col_names = header_vector)
+
 
 # cumulative rainfall plots ----
 
 #create data frame with cumulative annual rainfall by year
-ytd <- daily_summaries %>%
+ytd <- daily_rain %>%
   group_by(wy, .drop = FALSE) %>%
   mutate(cumulative_rain = cumsum(prcp)) %>% 
   ungroup() %>%
@@ -58,7 +95,7 @@ ytd <- daily_summaries %>%
   filter(wy >= 2018)
 
 
-ytd_all_time <- daily_summaries %>%
+ytd_all_time <- daily_rain %>%
   group_by(wy, .drop = FALSE) %>%
   mutate(cumulative_rain = cumsum(prcp)) %>% 
   ungroup() %>%
@@ -134,6 +171,16 @@ ggsave(cumulative_curves,
        filename = paste("figures/rainfall/cumulative_annual_rainfall",
                         format(Sys.time(), "%Y-%m-%d"),
                         ".pdf"),
+       
+       
+       width = 6.5,
+       height = 5, 
+       units = "in")
+
+ggsave(cumulative_curves, 
+       filename = paste("figures/rainfall/cumulative_annual_rainfall",
+                        format(Sys.time(), "%Y-%m-%d"),
+                        ".jpg"),
        
        
        width = 6.5,
