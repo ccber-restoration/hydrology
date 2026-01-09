@@ -232,19 +232,20 @@ ggplotly(cumulative_curves_all)
 
 # simple annual bar graph ----
 
-annual_rainfall <- daily_summaries %>% 
+annual_rainfall <- daily_rain %>% 
   group_by(wy) %>% 
   summarize(total_rainfall = sum(prcp),
             ndays = n()) %>%   
   #filter years
   filter(wy >2017 & wy <2026) 
 
-annual_rainfall_all <- daily_summaries %>% 
+annual_rainfall_all <- daily_rain %>% 
   group_by(wy) %>% 
   summarize(total_rainfall = sum(prcp),
             ndays = n()) %>%   
   #filter years
-  filter(wy >2008) 
+  filter(wy >2008) %>% 
+  filter(wy <2026)
 
 #create bar plot
 fig_annual_rain <- ggplot(data = annual_rainfall, aes(x = wy, y = total_rainfall)) +
@@ -272,3 +273,21 @@ fig_annual_rain_all <- ggplot(data = annual_rainfall_all, aes(x = wy, y = total_
   xlab("Water year")
 
 fig_annual_rain_all
+
+fig_annual_rain_hist <- ggplot(data = annual_rainfall_all, aes(x = total_rainfall)) +
+  geom_histogram(binwidth = 1) +
+  xlab("Total rainfall (in)") +
+  scale_y_continuous(expand = c(0,0)) +
+  scale_x_continuous(breaks = breaks_width(1)) +
+  theme_cowplot() +
+  labs(title = "Histogram of annual rainfall (2009-2025 water years)")
+
+
+fig_annual_rain_hist
+
+
+mean(annual_rainfall_all$total_rainfall)
+
+median(annual_rainfall_all$total_rainfall)
+
+
