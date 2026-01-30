@@ -33,6 +33,15 @@ sba<-read_csv("data/SBA/SantaBarbaraAirport_altimeter_2025.05.10_2025.11.26.csv"
   )
 sba
 
+# read in data from 9/24/25 to 1/27/26 to compensate the campus lagoon data.
+sba2<-read_csv("data/SBA/SBA_altimeter_09.24.25_01.27.26.csv") %>% 
+  mutate(
+    valid = mdy_hm(valid),
+    Date = date(valid),
+    Time = as_hms(valid)
+  )
+sba2
+
 ## We only care about the 15 and 10 minute interval data. Add a column called 
 ## interval and omit NA values.
 sba<-sba %>%
@@ -45,9 +54,19 @@ sba<-sba %>%
     grepl(pattern = "40:00", x = Time) ~ "40",
     grepl(pattern = "45:00", x = Time) ~ "45",
     grepl(pattern = "50:00", x = Time) ~ "50",
-  ))
+  )) %>%
+  filter(!is.na(interval))
 
-sba <- sba %>%
+# for the campus lagoon data, we want every 10 min interval
+sba2<-sba2 %>%
+  mutate(interval = case_when(
+    grepl(pattern = "00:00", x = Time) ~ "00",
+    grepl(pattern = "10:00", x = Time) ~ "10",
+    grepl(pattern = "20:00", x = Time) ~ "20",
+    grepl(pattern = "30:00", x = Time) ~ "30",
+    grepl(pattern = "40:00", x = Time) ~ "40",
+    grepl(pattern = "50:00", x = Time) ~ "50"
+  )) %>%
   filter(!is.na(interval))
 
 ## Altimeter is measured in inHg and is not equal to barometric pressure. We
@@ -56,26 +75,34 @@ sba <- sba %>%
 ## a constant equal to ((288 - 0.0065 x h)/288)^2 where h is the elevation in m.
 
 #constant:
-constant <- ((288- 0.0065*3)/288)^2
+constant <- ((288 - 0.0065*3)/288)^2
 constant
 
-sba$baropressure_inHg<-sba$altimeter*0.9996441697
-sba
+sba <- sba %>%
+  mutate(baropressure_inHg = altimeter*constant,
+         ## Since the station is at sea level, the difference is negligible.
+         ## Convert from inches of mercury (inHg) to kilopascals (kPa).
+         baropressure_kPa = conv_unit(baropressure_inHg,"inHg","kPa"),
+         ## Levellogger manual provides conversion factor for kPa to water column equivalent
+         ## feet and meters.
+         equivalent_ft = baropressure_kPa*0.334553,
+         equivalent_m = baropressure_kPa*0.101972
+         )
 
-## Since the station is at sea level, the difference is negligible.
-## Convert from inches of mercury (inHg) to kilopascals (kPa).
-sba$baropressure_kPa<-sba$baropressure_inHg / 10 * 33.8639
-
-#sba$baropressure_kPa_chk <- sba$baropressure_inHg *3.386389 
-
-## Levellogger manual provides conversion factor for kPa to water column equivalent
-## feet and meters.
-sba$equivalent_ft<-sba$baropressure_kPa*0.334553
-sba$equivalent_m<-sba$baropressure_kPa*0.101972
-sba
+sba2 <- sba2 %>%
+  mutate(baropressure_inHg = alti*constant,
+         ## Since the station is at sea level, the difference is negligible.
+         ## Convert from inches of mercury (inHg) to kilopascals (kPa).
+         baropressure_kPa = conv_unit(baropressure_inHg,"inHg","kPa"),
+         ## Levellogger manual provides conversion factor for kPa to water column equivalent
+         ## feet and meters.
+         equivalent_ft = baropressure_kPa*0.334553,
+         equivalent_m = baropressure_kPa*0.101972
+  )
 
 #write to file
 write_csv(sba,"data/SBA/SBA_baropressure_2025.05.10_2025.11.26.csv")
+write_csv(sba2,"data/SBA/SBA_baropressure_2025.09.24_2026.01.26.csv")
 
 # 2. Manual Barometric Compensation ----
 
@@ -131,6 +158,7 @@ venoco_may<-read_csv("data/leveloggers/Venoco_Bridge/Venoco_11.13.24_8.29.25_Unc
 vnc_may_comp<-left_join(venoco_may,sba,by=join_by(datetime == valid)) %>% 
   ## subtract elevation difference coefficient (see logger_elev) and water column equivalent
   mutate(comp_level_ft = level_ft- 0.0084800484- equivalent_ft) %>%
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature)
 
 write_csv(vnc_may_comp,"data/leveloggers/Venoco_Bridge/Venoco_05.10.25_05.20.25_Compensated.csv")
@@ -151,6 +179,7 @@ phlp<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_1
 phlp_comp<-left_join(phlp,sba,by=join_by(datetime == valid)) %>% 
   ## add elevation difference coefficient (see logger_elev) and water column equivalent
   mutate(comp_level_ft = level_ft+ 0.0001785472- equivalent_ft ) %>% 
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature)
 
 write_csv(phlp_comp,"data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_08.29.25_11.13.25_Compensated.csv")
@@ -174,6 +203,7 @@ phlp_may<-read_csv("data/leveloggers/Phelps_Creek_Marymount_Bridge/Phelps_02.20.
 phlp_may_comp<-left_join(phlp_may,sba,by=join_by(datetime == valid)) %>% 
   ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
   mutate(comp_level_ft = level_ft+0.0001785472-equivalent_ft) %>% 
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature)
 
 #write to file
@@ -197,6 +227,7 @@ pier<-read_csv("data/leveloggers/Pier/PIER_08.29.25_11.13.25_Uncompensated.csv",
 pier_comp<-left_join(pier,sba,by=join_by(datetime == valid)) %>% 
   # add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
   mutate(comp_level_ft = level_ft- 0.0106570581- equivalent_ft) %>% 
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature,conductivity)
 
 write_csv(pier_comp,"data/leveloggers/Pier/PIER_08.29.25_11.13.25_Compensated.csv")
@@ -216,12 +247,10 @@ pier_may<-read_csv("data/leveloggers/Pier/PIER_10.10.23_08.29.25_Uncompensated.c
   filter(datetime > ymd_hms("2025-05-10 03:30:00") & datetime < ymd_hms("2025-05-20 13:15:00"))
 
 ## merge with Santa Barbara Airport baropressure df
-pier_may_comp<-left_join(pier_may,sba,by=join_by(datetime == valid))
-
-## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
-pier_may_comp$comp_level_ft<-pier_may_comp$level_ft-0.0106570581-pier_may_comp$equivalent_ft
-
-pier_may_comp<-pier_may_comp %>% 
+pier_may_comp<-left_join(pier_may,sba,by=join_by(datetime == valid)) %>%
+  ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft-0.0106570581-equivalent_ft) %>%
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature,conductivity)
 
 # 5. Dune Pond ----
@@ -241,10 +270,8 @@ dp<-read_csv("data/leveloggers/Dune_Pond/2171471_Dune_Pond_23.04.20_25.09.02_Unc
   filter(datetime > ymd_hms("2025-05-10 03:45:00") & datetime < ymd_hms("2025-05-20 12:45:00"))
 
 ## merge with Santa Barbara Airport baropressure df
-dp_comp<-left_join(dp,sba,by=join_by(datetime == valid))
-
-## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
-dp_comp$comp_level_ft<-dp_comp$level_ft-0.0050332688-dp_comp$equivalent_ft
-
-dp_comp<-dp_comp %>% 
+dp_comp<-left_join(dp,sba,by=join_by(datetime == valid)) %>%
+  ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  mutate(comp_level_ft = level_ft-0.0050332688-equivalent_ft) %>%
+  # keep relevant columns
   select(datetime,comp_level_ft,temperature)
