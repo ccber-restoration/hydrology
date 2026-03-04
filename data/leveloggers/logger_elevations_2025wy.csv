@@ -1,9 +1,16 @@
-location,elevation_ft
-Devereux Slough Pier,1.03979
-East Arm Trail Bridge,4.51
-Phelps Creek - Marymount Bridge ,9.99
-Venoco Bridge - north side,2.838
-West Arm - Devereux Creek,8.407
-Whittier Storm drain,10.41
-Whittier Pond,5.035
-Dune Pond,14.0
+location,elevation_ft,reference_point
+Devereux Slough Pier,1.03979,
+East Arm Trail Bridge,4.51,
+Phelps Creek - Marymount Bridge,9.99,
+Venoco Bridge - north side,2.838,
+West Arm - Devereux Creek,8.407,
+Whittier Storm drain,10.41,
+Whittier Pond,5.035,
+Dune Pond,14,
+Campus Lagoon,11.61,top of well
+AREA K GAGE 01,8.416,top of well
+CDFW GAGE 01,8.667,top of well
+EAST MARSH GAGE 01,6.707,top of well
+EAST STORKE GAGE 01,5.464,top of pipe
+TIDAL CHANNEL GAGE 01,6.27,top of pipe
+WEST MARSH GAGE 01,6.32,top of well

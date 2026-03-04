@@ -5,10 +5,12 @@
 # Originally written 2025-11-18
 # Author(s):      Francis Joyce, Claire WS
 
-# Inputs:         
-# Outputs:        
+# Inputs:         Compensated CSVs, either automatically compensated using the
+#                 Solinst software, or manually compensated using 
+#                 01_barologger_data_gap_fic.R; CSVs are stored in Box
+# Outputs:        Combined CSVs
 # 
-# Notes:          
+# Notes:          Revised 3/3/2026 to combine Campus Lagoon data
 #                 
 # =============================================================================
 
@@ -333,3 +335,37 @@ ggsave(filename = paste("figures/2025_wy_wse_precip_",
        height = 6.4,
        units = "in"
        )
+
+# combine Campus Lagoon data into one dataframe ----
+
+lagoon_2025_wy_a <- read_csv(
+  file = "data/leveloggers/Campus_Lagoon/CampusLagoon_09.24.25_11.18.25_Compensated.csv") %>% 
+  clean_names()
+
+lagoon_2025_wy_b <- read_csv(
+  file = "data/leveloggers/Campus_Lagoon/CampusLagoon_2025.11.18_2025.12.23_Compensated.csv",
+  skip = 11) %>% 
+  clean_names() %>% 
+  mutate(date = mdy(date),
+         datetime = as.POSIXct(paste(date, time), format = "%Y-%m-%d %H:%M:%S"),
+         comp_level_ft = level) %>% 
+  select(-c(date:ms, level))
+
+lagoon_2025_wy_c <- read_csv(
+  file = "data/leveloggers/Campus_Lagoon/CampusLagoon_2025.12.23_2026.03.03_Compensated.csv",
+  skip = 11) %>% 
+  clean_names() %>% 
+  mutate(date = mdy(date),
+         datetime = as.POSIXct(paste(date, time), format = "%Y-%m-%d %H:%M:%S"),
+         comp_level_ft = level) %>% 
+  select(-c(date:ms, level))
+
+#combine three shorter timeseries into one covering most of 2025 water year
+lagoon_20250924_20260303 <- bind_rows(lagoon_2025_wy_a, lagoon_2025_wy_b,
+                                    lagoon_2025_wy_c)
+
+write_csv(lagoon_20250924_20260303, 
+          "data/leveloggers/Campus_Lagoon/CampusLagoon_09.24.25_03.03.26_Compensated.csv")
+
+#declutter
+remove(lagoon_2025_wy_a, lagoon_2025_wy_b, lagoon_2025_wy_c)
