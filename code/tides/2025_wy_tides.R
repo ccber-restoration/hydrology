@@ -28,7 +28,8 @@ tides_2025_03 <- read_delim(file = "data/NOAA_tide_predictions/NOAA_tide_preds_N
   select(date:pred) %>% 
   mutate(datetime = as.POSIXct(date) + time)
 
-tides_2025 <- bind_rows(tides_2025_02, tides_2025_03)
+tides_2025 <- bind_rows(tides_2025_02, tides_2025_03) %>% 
+  filter(date < as.date("2025-04-11"))
 
 #quick plot
 
