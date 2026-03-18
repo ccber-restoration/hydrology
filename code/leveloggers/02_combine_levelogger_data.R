@@ -26,12 +26,12 @@ library(plotly)
 # define start and end of 2025 water year
 
 #as datetimes
-wy_2025_start <- as.POSIXct("2024-10-01 00:00:00")
-wy_2025_end <- as.POSIXct("2025-09-30 23:59:59")
+wy_2025_start <- as.POSIXct("2024-10-01 00:00:00", tz = "America/Los_Angeles" )
+wy_2025_end <- as.POSIXct("2025-09-30 23:59:59", tz = "America/Los_Angeles")
 
 #as dates
-wy_2025_start_date <- ymd("2024-10-01")
-wy_2025_end_date <- ymd("2025-09-30")
+wy_2025_start_date <- ymd("2024-10-01", tz = "America/Los_Angeles")
+wy_2025_end_date <- ymd("2025-09-30", tz = "America/Los_Angeles")
 
 # logger elevations ----
 
