@@ -46,7 +46,8 @@ daily_rain_2025_11_30 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_s
   filter(!(year == 2025 & month == 12))
 
 
-daily_rain_2025_12 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-30.csv") %>% 
+# add latest data (from Dec-Jan)
+daily_rain_2026_01 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_2026-01-26.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
   mutate(year = year(date),
@@ -62,7 +63,7 @@ daily_rain_2025_12 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summ
 
 
 #combine:
-daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2025_12)
+daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2026_01)
 
 
 
@@ -167,6 +168,7 @@ cumulative_curves <-  ggplot(data = ytd,
 
 cumulative_curves
 
+#save as pdf
 ggsave(cumulative_curves, 
        filename = paste("figures/rainfall/cumulative_annual_rainfall",
                         format(Sys.time(), "%Y-%m-%d"),
@@ -177,6 +179,7 @@ ggsave(cumulative_curves,
        height = 5, 
        units = "in")
 
+#save as jpg
 ggsave(cumulative_curves, 
        filename = paste("figures/rainfall/cumulative_annual_rainfall",
                         format(Sys.time(), "%Y-%m-%d"),
@@ -228,6 +231,17 @@ cumulative_curves_all <-  ggplot(data = ytd_all_time,
 cumulative_curves_all
 
 ggplotly(cumulative_curves_all)
+
+#save as pdf
+ggsave(cumulative_curves_all, 
+       filename = paste("figures/rainfall/cumulative_annual_rainfall_all_yrs",
+                        format(Sys.time(), "%Y-%m-%d"),
+                        ".pdf"),
+       
+       
+       width = 6.5,
+       height = 5, 
+       units = "in")
 
 
 # simple annual bar graph ----
