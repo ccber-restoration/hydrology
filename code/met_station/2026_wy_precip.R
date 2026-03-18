@@ -11,9 +11,6 @@
 #                 
 # =============================================================================
 
-
-
-
 library(tidyverse)
 library(janitor)
 library(cowplot)
@@ -32,7 +29,7 @@ dowy = function(x, start.month = 10L){
 #test day of water year (dowy) function
 dowy(as.Date("2025-09-30"))
 
-#read in NOAA daily summaries
+#read in NOAA daily summaries from 2008-08-14 through 2025-12-06
 daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2025-12-09.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
