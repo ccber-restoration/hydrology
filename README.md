@@ -2,7 +2,7 @@
 
 The purpose of this repository is to work with local hydrological data 
 
-## Weather data
+## Weather data (precipitation & temp)
 
 -  Precipitation (and temperature and soil moisture) are available for the NOAA Weather station at Coal Oil Point Reserve (**station ID 53152**):
     -  https://www.ncei.noaa.gov/access/crn/sensors.htm?stationId=1529#precip
@@ -38,6 +38,7 @@ The purpose of this repository is to work with local hydrological data
 - YSI data are collected in a Survey123 Form ("NCOS YSI Water Quality Monitoring")
 
   
+
 
 
 

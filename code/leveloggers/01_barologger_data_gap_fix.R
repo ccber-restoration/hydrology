@@ -8,7 +8,7 @@
 # Inputs:         SBA altimeter data (units = inches of mercury)             
 # Outputs:        Individual compensated levelogger csvs
 # 
-# Notes:          
+# Notes:          Revised on 3/3/26 to manually compensate Campus Lagoon Data.
 #                 
 # =============================================================================
 
@@ -106,13 +106,15 @@ write_csv(sba2,"data/SBA/SBA_baropressure_2025.09.24_2026.01.26.csv")
 
 # 2. Manual Barometric Compensation ----
 
-## Conduct manual compensation for data gaps. Step 1: Calculate elevation
-## difference between elevation of levelogger and elevation of weather station.
+## Conduct manual compensation for data gaps.
+## Step 1: Calculate elevation difference between elevation of levelogger and 
+## elevation of weather station.
 ## According to Solinst guide: (elevation of levelogger - elevation of weather
 ## station) divided by 826. This is because as elevation increases, barometric 
 ## pressure decreases at a rate of approximately 1.21/1000 ft or meters.
 
 logger_elev<-read_csv("data/leveloggers/logger_elevations_2025wy.csv")
+# subtract elevation of weather station 3 meters ~ 9.84252 ft
 logger_elev$elev_diff_ft <- (logger_elev$elevation_ft-9.84252)/826
 logger_elev
 
@@ -271,7 +273,42 @@ dp<-read_csv("data/leveloggers/Dune_Pond/2171471_Dune_Pond_23.04.20_25.09.02_Unc
 
 ## merge with Santa Barbara Airport baropressure df
 dp_comp<-left_join(dp,sba,by=join_by(datetime == valid)) %>%
-  ## add/subtract elevation difference coefficient (see logger_elev) and water column equivalent
+  ## add/subtract elevation difference coefficient (see logger_elev) and water 
+  ## column equivalent
   mutate(comp_level_ft = level_ft-0.0050332688-equivalent_ft) %>%
   # keep relevant columns
   select(datetime,comp_level_ft,temperature)
+
+# 6. Campus Lagoon ----
+
+## We have barometric pressure data from the Goleta Slough barometer starting
+## 11/18/2025. We will manually compensate using this script from 9/24 to 11/18.
+## Read in uncompensated Campus Lagoon data from 9/24/2025-12/23/2025. Level is
+## in feet.
+
+lagoon<-read_csv(
+  "data/leveloggers/Campus_Lagoon/CampusLagoon_2025.09.24_2025.12.23_Uncompensated.csv",
+  skip = 11) %>% 
+  clean_names() %>% 
+  mutate(
+    #parse date from character to date format
+    date = mdy(date),
+    #create datetime variable, first converting date to POSIXct
+    datetime = as.POSIXct(date) + time) %>% 
+  #round datetime down to nearest minute
+  mutate(datetime = floor_date(datetime, unit="minute")) %>% 
+  ## Filter for missing data between 5/10/25 at 3:45 am and 5/20/25 at 12:45 pm.
+  filter(datetime > ymd_hms("2025-09-24 08:40:00") & datetime < 
+           ymd_hms("2025-11-18 06:10:00"))
+
+## merge with Santa Barbara Airport baropressure df
+lagoon_comp<-left_join(lagoon, sba2, by=join_by(datetime == valid)) %>%
+  ## add/subtract elevation difference coefficient (see logger_elev) and water 
+  ## column equivalent
+  mutate(comp_level_ft = level - 0.0021398063 - equivalent_ft) %>%
+  # keep relevant columns
+  select(datetime, comp_level_ft, temperature)
+
+write_csv(lagoon_comp,
+          "data/leveloggers/Campus_Lagoon/CampusLagoon_09.24.25_11.18.25_Compensated.csv")
+
