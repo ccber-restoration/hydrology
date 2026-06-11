@@ -84,7 +84,14 @@ precip_fig <- ggplot(data = water_year_2025, aes(x = date, y = prcp)) +
   ylab("Daily rainfall (in)") +
   xlab("Date") +
   scale_x_date(breaks = "1 months", date_labels = "%b", expand = c(0,0)) +
-  scale_y_continuous(expand = c(0,0)) +
+  scale_y_continuous(expand = c(0,0), breaks = scales::breaks_width(0.25)) +
   theme_cowplot()
 
 precip_fig
+
+ggsave(precip_fig, filename = "figures/rainfall/year_8_report/2024_2025_wy_precipitation.png",
+       width = 180,
+       height = 120,
+       units = "mm",
+       bg = "white"
+       )
