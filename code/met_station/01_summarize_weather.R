@@ -69,6 +69,8 @@ daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2026_01)
 
 #read in txt files ----
 
+# NOT USED:
+
 #get headers
 headers <- read_lines("data/NOAA_weather_station/ncei/headers.txt")
 
@@ -84,18 +86,22 @@ daily_summaries_2025 <- read_table(file = "data/NOAA_weather_station/ncei/CRND01
 
 # cumulative rainfall plots ----
 
-#create data frame with cumulative annual rainfall by year
+#create data frame with cumulative annual rainfall by year, starting with 2018 water year
 ytd <- daily_rain %>%
   group_by(wy, .drop = FALSE) %>%
   mutate(cumulative_rain = cumsum(prcp)) %>% 
   ungroup() %>%
   # create column with "year" label that will be plotted on last day of wy
   mutate(year_label = case_when(
-    month == 9 & day == 30 ~ year
+    month == 9 & day == 30 ~ paste0(year, " (", round(cumulative_rain, 1), ")")
   )) %>% 
   filter(wy >= 2018)
 
+# filter to years 1-8 (wy 2018-2025) for year 8 monitoring report
+ytd_y8_report <- ytd %>% 
+  filter(wy < 2026)
 
+# all available data from weather station
 ytd_all_time <- daily_rain %>%
   group_by(wy, .drop = FALSE) %>%
   mutate(cumulative_rain = cumsum(prcp)) %>% 
@@ -130,6 +136,7 @@ tickmarks <- date(
 doy <- tibble(mon = month(tickmarks, label = T),
               dowy = dowy(as.Date(tickmarks)))
 
+## all years since 2018 ----
 
 #create plot
 cumulative_curves <-  ggplot(data = ytd,
@@ -191,9 +198,53 @@ ggsave(cumulative_curves,
        units = "in")
 
 
+## Year 8 report: 2018-2025 cumulative curves----
+
+cumulative_curves_y8 <-   ggplot(data = ytd_y8_report,
+                                 aes(
+                                   x = dowy,
+                                   y = cumulative_rain,
+                                   group = wy,
+                                   color = wy
+                                 )) +
+  geom_line(linewidth = 1) +
+  scale_x_continuous(breaks = doy$dowy,
+                     labels = doy$mon,
+                     limits = c(0, 430)) +
+  scale_y_continuous(breaks = seq(0,30, by = 5), expand = c(0,1)) +
+  #  geom_text(aes(x = JD + 5, y = cum_rain, label = year_label), hjust = 0) +
+  geom_text_repel(aes(x = dowy + 4, y = cumulative_rain, label = year_label), direction = c("y"), hjust = 0, size = 5) +
+  #scale_colour_viridis_c() +
+  #scale_color_manual(values = cal_palette("kelp1")) +
+  #scale_x_date(date_labels = "%b", date_breaks = "months") +
+  labs(
+    # title = "Cumulative annual rainfall (2018-2025 water years)",
+    #caption = "Coal Oil Point Reserve \n Lat: 34.41386, Lon: -119.8802",
+    y = "Cumulative rainfall (in)",
+    x = "Date"
+  ) +
+  theme_bw() +
+  theme(
+    text = element_text(size = 15),
+    axis.ticks.length.x = unit(0.5, "cm"),
+    axis.text.x = element_text(vjust = 5.5,
+                               hjust = -0.2),
+    panel.grid = element_line(color = "white"), 
+    legend.position = "none"
+  )
+
+
+cumulative_curves_y8
 #ggplotly(cumulative_curves)
 
-# all years - cumulative curves
+ggsave(cumulative_curves_y8, file = "figures/rainfall/year_8_report/rainfall_curves_y8.png",
+       width = 180,
+       height = 160,
+       units = "mm",
+       bg = "white")
+
+
+## all years - cumulative curves ----
 cumulative_curves_all <-  ggplot(data = ytd_all_time,
                              aes(
                                x = dowy,
@@ -244,11 +295,11 @@ ggsave(cumulative_curves_all,
        units = "in")
 
 
-# simple annual bar graph ----
+# bar graph ----
 
 annual_rainfall <- daily_rain %>% 
   group_by(wy) %>% 
-  summarize(total_rainfall = sum(prcp),
+  summarize(total_rainfall = round(sum(prcp),1),
             ndays = n()) %>%   
   #filter years
   filter(wy >2017 & wy <2026) 
@@ -264,8 +315,9 @@ annual_rainfall_all <- daily_rain %>%
 #create bar plot
 fig_annual_rain <- ggplot(data = annual_rainfall, aes(x = wy, y = total_rainfall)) +
   geom_col(fill = "darkblue") +
+  geom_text(aes(label = total_rainfall), vjust = -0.5, size = 4) +
   #geom_line() +
-  scale_y_continuous(expand = c(0,NA), breaks = breaks_width(5)) +
+  scale_y_continuous(expand = c(0,NA), limits = c(0,31), breaks = breaks_width(5)) +
   scale_x_continuous(breaks = breaks_width(1), expand = c(0,0)) +
   theme_cowplot() +
   ylab("Total rainfall (in)") +
@@ -273,8 +325,13 @@ fig_annual_rain <- ggplot(data = annual_rainfall, aes(x = wy, y = total_rainfall
 
 fig_annual_rain
 
-#save to file
-#ggsave(plot = fig_annual_rain, filename = "figures/annual_rainfall.png")
+# save to file
+ ggsave(plot = fig_annual_rain, 
+        filename = "figures/rainfall/year_8_report/total_annual_rainfall_y1_y8.png",
+        width = 180,
+        height = 140,
+        units = "mm",
+        bg = "white")
 
 
 fig_annual_rain_all <- ggplot(data = annual_rainfall_all, aes(x = wy, y = total_rainfall)) +
@@ -303,5 +360,3 @@ fig_annual_rain_hist
 mean(annual_rainfall_all$total_rainfall)
 
 median(annual_rainfall_all$total_rainfall)
-
-
