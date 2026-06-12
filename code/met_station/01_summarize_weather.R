@@ -46,7 +46,7 @@ daily_rain_2025_11_30 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_s
   filter(!(year == 2025 & month == 12))
 
 
-# add latest data (from Dec-Jan)
+# add latest data (from Dec 1 -Jan 15)
 daily_rain_2026_01 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_2026-01-26.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
@@ -61,10 +61,25 @@ daily_rain_2026_01 <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summ
     .default = year
   )) 
 
+# rest of 2026 year to date
+daily_rain_2026_06 <- read_csv(file = "data/NOAA_weather_station/ncei/NOAA_daily_summaries_USW00053152_full_2026-05-31.csv") %>% 
+  clean_names() %>% 
+  # remove attributes columns (flags)
+  select(-c(prcp_attributes, tmax_attributes, tmin_attributes)) %>% 
+  #create columns for month and year
+  mutate(year = year(date),
+         month = month(date),
+         day = day(date),
+         #create column for "day of water year"
+         dowy = dowy(date)) %>% 
+  #create column for wateryear
+  mutate(wy = case_when(
+    month >= 10 ~ year + 1,
+    .default = year
+  )) 
 
 #combine:
-daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2026_01)
-
+daily_rain <- bind_rows(daily_rain_2025_11_30, daily_rain_2026_01, daily_rain_2026_06)
 
 
 #read in txt files ----
