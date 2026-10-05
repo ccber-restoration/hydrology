@@ -1,6 +1,8 @@
 library(tidyverse)
 library(janitor)
 
+# note: this relies on the custom function dowy() (day of water year, which is defined in one of the met station scripts)
+
 Venoco_18_23 <- read_csv(file = "data/leveloggers/dryad/doi_10_25349_D9RP7X__v20240417/Veneco_Bridge_PTdata_2018-2023wy.csv") %>% 
   clean_names() %>% 
   #create columns for month and year
