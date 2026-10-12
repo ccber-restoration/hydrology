@@ -52,3 +52,38 @@ ggsave("figures/dev_slough_mouth_closure_timeline_2019_2026.png",
        fig_closure,
        width = 9,
        height = 4)
+
+# create version only through 2025, for Year 8 report ----
+
+date_w_state_2025 <- dates_w_state |> 
+  filter(date < as.Date("2025-09-01"))
+
+fig_closure_2025 <-  ggplot(data = date_w_state_2025, aes(x = date, y = 10, color = mouth_status, fill = mouth_status)) +
+  geom_col() +
+  scale_x_date(
+    date_breaks = "1 year",        # Major ticks and labels every year
+    date_labels = "%Y",            # Format labels as 4-digit year
+    date_minor_breaks = "1 month"  # Minor ticks every month
+  ) +
+  scale_fill_manual(values = pal_mouth_closure) +
+  scale_color_manual(values = pal_mouth_closure) +
+  theme_cowplot() +
+  theme(
+    axis.title.y = element_blank(),
+    axis.text.y  = element_blank(),
+    axis.ticks.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank()
+  ) +
+  labs(title = "Devereux Slough Mouth State ") +
+  xlab("Date") +
+  labs(fill = "Mouth state",
+       color = "Mouth state")
+
+fig_closure_2025
+
+
+ggsave("figures/dev_slough_mouth_closure_timeline_2019_2025.png",
+       fig_closure_2025,
+       width = 7,
+       height = 3)
