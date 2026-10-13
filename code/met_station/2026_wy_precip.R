@@ -18,24 +18,7 @@ library(ggrepel)
 library(scales)
 
 
-#define function for calculating "day of water year"
-# (from here: https://stackoverflow.com/questions/55525965/is-there-a-r-function-to-calculate-day-of-water-year)
-dowy = function(x, start.month = 10L){
-  start.yr = year(x) - (month(x) < start.month)
-  start.date = make_date(start.yr, start.month, 1L)
-  as.integer(x - start.date + 1L)
-}
-
-# define function for calculating day of LOCAL water year (starting in September instead of October)
-dolwy = function(x, start.month = 9L){
-  start.yr = year(x) - (month(x) < start.month)
-  start.date = make_date(start.yr, start.month, 1L)
-  as.integer(x - start.date + 1L)
-}
-
-
-#test day of water year (dowy) function
-dolwy(as.Date("2025-09-30"))
+source("code/met_station/function_assign_water_years.R")
 
 #read in NOAA daily summaries from 2008-08-14 through 2025-12-06
 daily_summaries <- read_csv(file = "data/NOAA_weather_station/NOAA_daily_summaries_USW00053152_full_2026-09-05.csv") %>% 
