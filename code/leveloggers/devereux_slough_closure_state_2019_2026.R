@@ -36,6 +36,7 @@ fig_closure <- ggplot(data = dates_w_state, aes(x = date, y = 10, color = mouth_
   scale_color_manual(values = pal_mouth_closure) +
   theme_cowplot() +
   theme(
+    axis.line.y = element_blank(), # This removes the y-axis line
     axis.title.y = element_blank(),
     axis.text.y  = element_blank(),
     axis.ticks.y = element_blank(),
@@ -48,10 +49,12 @@ fig_closure <- ggplot(data = dates_w_state, aes(x = date, y = 10, color = mouth_
 
 fig_closure
 
-ggsave("figures/dev_slough_mouth_closure_timeline_2019_2026.png",
+ggsave(paste0("figures/mouth/dev_slough_mouth_closure_timeline_2019_2026_",
+              format(Sys.time(), "%Y-%m-%d"),
+              ".png"),
        fig_closure,
-       width = 9,
-       height = 4)
+       width = 6.5,
+       height = 2.5)
 
 # create version only through 2025, for Year 8 report ----
 
@@ -67,8 +70,10 @@ fig_closure_2025 <-  ggplot(data = date_w_state_2025, aes(x = date, y = 10, colo
   ) +
   scale_fill_manual(values = pal_mouth_closure) +
   scale_color_manual(values = pal_mouth_closure) +
+  scale_y_continuous(expand = c(0,0)) +
   theme_cowplot() +
   theme(
+    axis.line.y = element_blank(), # This removes the y-axis line
     axis.title.y = element_blank(),
     axis.text.y  = element_blank(),
     axis.ticks.y = element_blank(),
@@ -82,8 +87,9 @@ fig_closure_2025 <-  ggplot(data = date_w_state_2025, aes(x = date, y = 10, colo
 
 fig_closure_2025
 
-
-ggsave("figures/dev_slough_mouth_closure_timeline_2019_2025.png",
+ggsave(paste0("figures/mouth/year8/dev_slough_mouth_closure_timeline_2019_2025_",
+              format(Sys.time(), "%Y-%m-%d"),
+              ".png"),
        fig_closure_2025,
-       width = 7,
-       height = 3)
+       width = 6.5,
+       height = 2.5)
