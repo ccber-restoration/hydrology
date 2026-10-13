@@ -87,9 +87,48 @@ fig_closure_2025 <-  ggplot(data = date_w_state_2025, aes(x = date, y = 10, colo
 
 fig_closure_2025
 
+# combine with monthly rainfall data
+
+# need to run the 01_summarize_weather.R script in order to generate the fig_monthly_rain_y8 ggplot object
+
+fig_mouth_and_rain_y8 <- plot_grid(fig_closure_2025 +  theme(legend.position = "top"),
+                                   fig_monthly_rain_y8,
+                                   nrow = 2,
+                                   align = "v",
+                                   rel_heights = c(1, 1.5))
+
+fig_mouth_and_rain_y8
+
 ggsave(paste0("figures/mouth/year8/dev_slough_mouth_closure_timeline_2019_2025_",
               format(Sys.time(), "%Y-%m-%d"),
               ".png"),
-       fig_closure_2025,
-       width = 6.5,
-       height = 2.5)
+       fig_mouth_and_rain_y8,
+       bg = "white",
+       width = 7,
+       height = 5)
+
+
+# try single panel, with mouth state as background color
+
+fig_mouth_closure_comb <-  ggplot(data = monthly_rainfall_y8, aes(x = time_id, y = monthly_total)) +
+  geom_col(data = date_w_state_2025, aes(x = date, y = 12, fill = mouth_status)) +
+  geom_col(fill = "darkblue", color = "darkblue") +
+  scale_fill_manual(values = pal_mouth_closure) +
+  scale_x_date(date_breaks = "1 year",                  # Set tick intervals
+               date_labels = "%Y") +
+  scale_y_continuous(expand = c(0,0), breaks = breaks_width(2)) +
+  theme_cowplot() +
+  xlab("Date") +
+  ylab("Monthly rainfall (in)") +
+  labs(fill = "Mouth state")
+  
+fig_mouth_closure_comb
+
+ggsave(paste0("figures/mouth/year8/dev_slough_mouth_closure_timeline_2019_2025_mon_rain_",
+              format(Sys.time(), "%Y-%m-%d"),
+              ".pdf"),
+       fig_mouth_closure_comb,
+       bg = "white",
+       width = 7,
+       height = 5)
+
