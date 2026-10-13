@@ -375,3 +375,5 @@ fig_monthly_rain_y8 <- ggplot(data = monthly_rainfall_y8, aes(x = time_id, y = m
   ylab("Monthly rainfall (in)")
 
 fig_monthly_rain_y8  
+
+# use this object to combine with mouth state timeline
