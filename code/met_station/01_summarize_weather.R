@@ -291,9 +291,9 @@ ggsave(plot = fig_annual_rain_y8,
        filename = paste0("figures/rainfall/year_8_report/total_annual_rainfall_y1_y8_",
                          format(Sys.time(), "%Y-%m-%d"),
                          ".png"),
-       width = 180,
-       height = 140,
-       units = "mm",
+       width = 6,
+       height = 4.5,
+       units = "in",
        bg = "white")
 
 # y9 annual rainfall at NCOS ----
