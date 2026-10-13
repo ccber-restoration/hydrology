@@ -85,8 +85,8 @@ ggsave(fig_precip_2025,
        filename = paste0("figures/rainfall/year_8_report/2024_2025_wy_precipitation_",
                          format(Sys.time(), "%Y-%m-%d"),
                          ".png"),
-       width = 180,
-       height = 120,
-       units = "mm",
+       width = 6,
+       height = 4.5,
+       units = "in",
        bg = "white"
        )
