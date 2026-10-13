@@ -127,7 +127,12 @@ dolwy <- tibble(mon = month(tickmarks, label = T),
               dolwy = dolwy(as.Date(tickmarks)))
 
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~----
+
 ## Create figs ----
+
+
+## 3. Cumulative annual rainfall ----
 
 ### All years - cumulative curves ----
 cumulative_curves_all <-  ggplot(data = ytd_all_time,
@@ -230,7 +235,7 @@ ggsave(cumulative_curves_y8, file = paste0("figures/rainfall/year_8_report/rainf
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~----
 
-# 3. annual bar graph ----
+# 4. annual bar graph ----
 
 
 # all available full years
@@ -273,7 +278,7 @@ fig_annual_rain_all <- ggplot(data = annual_rainfall_all, aes(x = lwy, y = total
 fig_annual_rain_all
 
 
-# y8 annual rainfall at NCOS ----
+## y8 annual rainfall at NCOS ----
 fig_annual_rain_y8 <- ggplot(data = annual_rainfall_NCOS_y1_8, aes(x = lwy, y = total_rainfall)) +
   geom_col(fill = "darkblue") +
   geom_text(aes(label = total_rainfall), vjust = -0.5, size = 4) +
@@ -296,7 +301,7 @@ ggsave(plot = fig_annual_rain_y8,
        units = "in",
        bg = "white")
 
-# y9 annual rainfall at NCOS ----
+## y9 annual rainfall at NCOS ----
 fig_annual_rain_y9 <- ggplot(data = annual_rainfall_NCOS_y1_9, aes(x = lwy, y = total_rainfall)) +
   geom_col(fill = "darkblue") +
   geom_text(aes(label = total_rainfall), vjust = -0.5, size = 4) +
@@ -343,7 +348,7 @@ median(annual_rainfall_all$total_rainfall)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~----
 
-# 4. monthly bar graphs ----
+# 5. monthly bar graphs ----
 monthly_rainfall <- daily_rain |> 
   group_by(lwy, year, month) |> 
   summarize(monthly_total = sum(prcp)) |> 
@@ -352,7 +357,13 @@ monthly_rainfall <- daily_rain |>
 
 # filter to 2018-2025 water years
 monthly_rainfall_y8 <- monthly_rainfall |> 
-  filter(lwy >2017 & lwy < 2026) 
+  filter(lwy >2017 & lwy < 2026) |> 
+  # filter to date range of mouth state data
+  filter(time_id >= as.Date("2019-01-15"))
+
+# date range for figure:
+# 2019-01-07 to 2026-10-04 to 2025-08-31
+
 
 fig_monthly_rain_y8 <- ggplot(data = monthly_rainfall_y8, aes(x = time_id, y = monthly_total)) +
   geom_col(fill = "darkblue") +
