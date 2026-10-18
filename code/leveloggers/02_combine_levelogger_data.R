@@ -25,33 +25,39 @@ library(hms)
 #interactive plots for exploration
 library(plotly)
 
-# define start and end of 2025 water year
+# define start and end of 2025 (2024-2025) water year
+# use local SB definition of water year
 
-#as datetimes
-wy_2025_start <- as.POSIXct("2024-10-01 00:00:00", tz = "America/Los_Angeles" )
-wy_2025_end <- as.POSIXct("2025-09-30 23:59:59", tz = "America/Los_Angeles")
 
-#as dates
-wy_2025_start_date <- ymd("2024-10-01", tz = "America/Los_Angeles")
-wy_2025_end_date <- ymd("2025-09-30", tz = "America/Los_Angeles")
+# as datetimes
+wy_2025_start <- as.POSIXct("2024-09-01 00:00:00", tz = "America/Los_Angeles" )
+wy_2025_end <- as.POSIXct("2025-08-31 23:59:59", tz = "America/Los_Angeles")
 
-# define start and end of 2025 & 2026 water year
+# as dates
+wy_2025_start_date <- ymd("2024-09-01", tz = "America/Los_Angeles")
+wy_2025_end_date <- ymd("2025-08-31", tz = "America/Los_Angeles")
 
-#as datetimes
-wy_2025_2026_start <- as.POSIXct("2024-10-01 00:00:00", tz = "America/Los_Angeles" )
-wy_2025_2026_end <- as.POSIXct("2026-03-30 23:59:59", tz = "America/Los_Angeles")
+# define start and end of 2025-2026 water year
 
-#as dates
-wy_2025_2026_start_date <- ymd("2024-10-01", tz = "America/Los_Angeles")
-wy_2025_2026_end_date <- ymd("2026-03-30", tz = "America/Los_Angeles")
+# as datetimes
+wy_2025_2026_start <- as.POSIXct("2025-09-01 00:00:00", tz = "America/Los_Angeles" )
+wy_2025_2026_end <- as.POSIXct("2026-08-31 23:59:59", tz = "America/Los_Angeles")
+
+# as dates
+wy_2025_2026_start_date <- ymd("2025-09-01", tz = "America/Los_Angeles")
+wy_2025_2026_end_date <- ymd("2026-08-31", tz = "America/Los_Angeles")
 
 # logger elevations ----
 
-#ordered from "downstream" (lower) to upstream (higher)
+# ordered from "downstream" (lower) to upstream (higher)
 
-#note that these elevations are in feet
+# note that these elevations are in feet
+
+# TODO- note that this may be an over-simplication if loggers were repositioned  over time
 logger_elev <- read_csv("data/leveloggers/logger_elevations_2025wy.csv")
 
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ----
 # Individual stations ----
 
 ## Pier ----
@@ -78,27 +84,36 @@ pier_2025_wy_c <- read_csv(file = "data/leveloggers/Pier/PIER_05.20.24_08.29.25_
 pier_2025_wy_d <- read_csv(file = "data/leveloggers/Pier/PIER_08.29.25_11.13.25_Compensated.csv") %>% 
   clean_names()
 
-#combine four shorter timeseries into one covering most of 2025 water year
-pier_20240319_20251113 <- bind_rows(pier_2025_wy_a, pier_2025_wy_b, pier_2025_wy_c, pier_2025_wy_d) %>% 
+# combine four shorter timeseries into one covering most of 2025 water year
+pier_20240319_20251113 <- bind_rows(pier_2025_wy_a, pier_2025_wy_b, pier_2025_wy_c, pier_2025_wy_d) |>  
   mutate(
     #parse date from character to date format
     date = date(datetime),
     #create water surface elevation column, by logger elevation
     wse = comp_level_ft + 3.4,
-    station = "Pier") %>% 
+    station = "Pier") |>  
   # there are also a bunch of NAs bw 2025-09-02 and 2025-10-29
-  #filter(is.na(comp_level_ft)) %>% 
-  #there is one anomalous value (obvious error) on 2025-11-02 22:15:00
-  #crude way of filtering out high values...
-  filter(comp_level_ft < 20)
+  # filter(is.na(comp_level_ft)) %>% 
+  # there is one anomalous value (obvious error) on 2025-11-02 22:15:00
+  # crude way of filtering out high values...
+  filter(comp_level_ft < 20) |> 
+  # filter out short anomaly in the September 2024
+  filter(!(date > as.Date("2024-09-16") &
+             date < as.Date("2024-09-19") &
+             wse < 4)) |> 
+  # filter out another anomaly in November 2024
+  filter(!(date > as.Date("2024-11-12") &
+             date < as.Date("2024-11-15") &
+             wse < 4))
   
-#declutter
+  
+# declutter
 remove(pier_2025_wy_a, pier_2025_wy_b, pier_2025_wy_c, pier_2025_wy_d)
 
-#plot Pier water levels over 2025 water year
+# plot Pier water levels over 2025 water year
 pier_wse_fig <- ggplot(data = pier_20240319_20251113, aes(x = datetime, y = wse)) +
   geom_line() +
-  #theme_cowplot() +
+  # theme_cowplot() +
   ylab("Water surface elevation (ft)") +
   xlab("Date") +
   labs(title = "Devereux Slough Pier") +
@@ -110,12 +125,18 @@ pier_wse_fig <- ggplot(data = pier_20240319_20251113, aes(x = datetime, y = wse)
 
 pier_wse_fig
 
-#ggsave(filename = "figures/Pier_wse_wy25_DRAFT.png", plot = pier_wse_fig)
+# Note that there were dips (short-term anomalies) around 17-18 Sep and 13 Nov.
+# So, filter the data above
+
+# make interactive
+ggplotly(pier_wse_fig)
+
+# ggsave(filename = "figures/Pier_wse_wy25_DRAFT.png", plot = pier_wse_fig)
 
 ## Venoco bridge ----
 
-#note level is in meters and temp is in C
-#not sure what ms column is
+# note level is in meters and temp is in C
+# not sure what ms column is
 venoco_2025_wy_a <- read_csv("data/leveloggers/Venoco_Bridge/Venoco_11.13.24_05.10.25_Compensated.csv", skip = 11) %>% 
   clean_names() %>%
   select(-ms) %>% 
@@ -138,7 +159,7 @@ venoco_2025_wy_c <- read_csv(file = "data/leveloggers/Venoco_Bridge/Venoco_05.20
          comp_level_ft = conv_unit(level, "m", "ft")
   )
 
-#already in feet
+# already in feet
 venoco_2025_wy_d <- read_csv(file = "data/leveloggers/Venoco_Bridge/Venoco_08.29.25_10.22.25_Compensated.csv") %>% 
   clean_names() %>% 
   mutate(date = date(datetime),
@@ -148,15 +169,17 @@ venoco_2025_wy_d <- read_csv(file = "data/leveloggers/Venoco_Bridge/Venoco_08.29
 venoco_2024_11_13_2025_10_22 <- bind_rows(venoco_2025_wy_a, venoco_2025_wy_b, venoco_2025_wy_c, venoco_2025_wy_d) %>% 
   clean_names() %>% 
   mutate(
-    #adjust water level by logger elevation
+    # adjust water level by logger elevation
     wse = comp_level_ft + 2.838,
-    station = "Venoco") 
+    station = "Venoco") |> 
+  # filter out outlier values right at beginning of time series in mid Nov
+  filter(!(date < as.Date("2024-11-14") &
+                            wse < 4))
 
-#declutter
+# declutter
 remove(venoco_2025_wy_a, venoco_2025_wy_b, venoco_2025_wy_c, venoco_2025_wy_d)
 
-
-#test plot
+# test plot
 venoco_wse_fig <- ggplot(data = venoco_2024_11_13_2025_10_22, aes(x = datetime, y = wse)) +
   theme_cowplot() +
   geom_line() +
@@ -174,10 +197,13 @@ venoco_wse_fig <- ggplot(data = venoco_2024_11_13_2025_10_22, aes(x = datetime, 
 
 venoco_wse_fig
 
-#make interactive
+# make interactive
 ggplotly(venoco_wse_fig)
 
-#ggsave(filename = paste("figures/Venoco_Bridge_wse_wy25_",
+# the fluctuation at the end of August is bizarre-- 
+# possibly related to water utility flushing??
+
+# ggsave(filename = paste("figures/Venoco_Bridge_wse_wy25_",
  #                       format(Sys.time(), "%Y-%m-%d"),
   #                      ".pdf"), 
    #                     plot = venoco_wse_fig)
@@ -246,7 +272,6 @@ phelps_wy_26_c <- read_csv(file = "data/leveloggers/Phelps_Creek_Marymount_Bridg
   select(-ms)
 
 #combine six Phelps dataframes into one
-
 phelps_wy_25_26 <- bind_rows(phelps_wy_25_a, phelps_wy_25_b, phelps_wy_25_c,
                              phelps_wy_26_a, phelps_wy_26_b, phelps_wy_26_c) %>% 
   #remove level column in meters
@@ -256,16 +281,16 @@ phelps_wy_25_26 <- bind_rows(phelps_wy_25_a, phelps_wy_25_b, phelps_wy_25_c,
          wse = comp_level_ft + 9.99,
          station = "Phelps")
 
-#write combined data to file
+# write combined data to file
 write_csv(phelps_wy_25_26,
           "data/leveloggers/Phelps_Creek_Marymount_Bridge/combined/Phelps_2024.03.19_2026.04.01_Compensated.csv")
 
-#declutter
+# declutter
 remove(phelps_wy_25_a, phelps_wy_25_b, phelps_wy_25_c, phelps_wy_26_a,
        phelps_wy_26_b, phelps_wy_26_c)
 
 # test plot for wy 25
-Phelps_wse_fig <- ggplot(data = phelps_wy_25, aes(x = datetime, y = wse)) +
+Phelps_wse_fig <- ggplot(data = phelps_wy_25_26, aes(x = datetime, y = wse)) +
   geom_line() +
   #theme_cowplot() +
   ylab("Water elevation (ft)") +
@@ -279,7 +304,6 @@ Phelps_wse_fig <- ggplot(data = phelps_wy_25, aes(x = datetime, y = wse)) +
 Phelps_wse_fig
 
 # plot for wy 25 and wy 26 up through March
-
 Phelps_wse_2526_fig <- ggplot(data = phelps_wy_25_26, aes(x = datetime, y = wse)) +
   geom_line() +
   #theme_cowplot() +
@@ -293,42 +317,18 @@ Phelps_wse_2526_fig <- ggplot(data = phelps_wy_25_26, aes(x = datetime, y = wse)
 
 Phelps_wse_2526_fig
 
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ----
 # Assemble water level + precip multi-panel fig ----
 
 ## combine different stations into one data frame ----
-
 wse_2025_combined <- bind_rows(pier_20240319_20251113, 
                                venoco_2024_11_13_2025_10_22,
-                               phelps_wy_25) %>% 
-  select(-c(conductivity, time, level)) 
+                               phelps_wy_25_26) %>% 
+  select(-c(conductivity, time, level)) |> 
+  # put stations in order by elevation rather than alphabetical
+  mutate(station = fct_relevel(station, "Phelps", "Venoco", "Pier"))
 
-#aggregate by taking mean of daily wse, to smooth out figure
-wse_2025_combined_daily_mean <- wse_2025_combined %>% 
-  group_by(date, station) %>% 
-  summarize(wse= mean(wse))
-
-wse_fig <- ggplot(data = wse_2025_combined_daily_mean, aes(x = date, y = wse, color = station)) +
-  geom_line() +
-  theme_cowplot() +
-  theme(legend.position = c(0.05, 0.65),
-        legend.box.background = element_rect(color = "black", 
-                                             fill = "white", 
-                                             linewidth = 0.5, 
-                                             linetype = "solid"),
-        legend.box.margin = margin(t = 4, r = 4, b = 4, l = 4)) +
-  ylab("Water surface elevation (ft)") +
-  xlab("Date") +
-  scale_y_continuous(limits = c(0,NA), 
-                     breaks = breaks_width(2)) +
-  scale_x_date(date_breaks =  "3 month", 
-                   date_minor_breaks = "1 month",
-                   date_labels = "%b %Y",
-                   limits = c(wy_2025_start_date, wy_2025_end_date),
-               expand = c(0,NA))
-
-wse_fig
-
-#figure without smoothing
+# figure without smoothing
 wse_raw_fig <- wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse, color = station)) +
   geom_line() +
   theme_cowplot() +
@@ -345,27 +345,53 @@ wse_raw_fig <- wse_fig <- ggplot(data = wse_2025_combined, aes(x = date, y = wse
   scale_x_date(date_breaks =  "1 month", 
                date_minor_breaks = "1 month",
                date_labels = "%b",
-               limits = c(wy_2025_start_date, wy_2025_end_date),
+               limits = c(as.Date(wy_2025_start_date), as.Date(wy_2025_end_date)),
                expand = c(0,NA))
 
 
 wse_raw_fig
 
-ggsave(filename = paste("figures/2025_wy_wse_raw_",
-                        format(Sys.time(), "%Y-%m-%d"),
-                        ".pdf"), 
+# save to file
+ggsave(filename = paste0("figures/water_levels/y8/2025_wy_wse_raw_",
+                         format(Sys.time(), "%Y-%m-%d"),
+                         ".pdf"), 
        plot = wse_raw_fig,
        width = 8.6,
        height = 6,
        units = "in"
 )
 
+# aggregate by taking mean of daily wse, to smooth out figure
+wse_2025_combined_daily_mean <- wse_2025_combined %>% 
+  group_by(date, station) %>% 
+  summarize(wse= mean(wse))
+
+wse_fig <- ggplot(data = wse_2025_combined_daily_mean, aes(x = date, y = wse, color = station)) +
+  geom_line() +
+  theme_cowplot() +
+  theme(legend.position = "right",
+        legend.box.background = element_rect(color = "black", 
+                                             fill = "white", 
+                                             linewidth = 0.5, 
+                                             linetype = "solid"),
+        legend.box.margin = margin(t = 4, r = 4, b = 4, l = 4)) +
+  ylab("Water surface elevation (ft)") +
+  xlab("Date") +
+  scale_y_continuous(limits = c(0,NA), 
+                     breaks = breaks_width(2)) +
+  scale_x_date(date_breaks =  "3 month", 
+                   date_minor_breaks = "1 month",
+                   date_labels = "%b %Y",
+                   limits = c(as.Date(wy_2025_start_date), as.Date(wy_2025_end_date)),
+               expand = c(0,NA))
+
+wse_fig
 
 
-#existing precipitation figure from "01_summarize_weather.R" script
+# get existing precipitation figure from "01_summarize_weather.R" script
 source("code/met_station/2025_wy_precip.R")
 
-precip_fig 
+fig_precip_2025 
 
 ## combine water level and precip plot ----
 wse_precip_fig <- plot_grid(
@@ -373,7 +399,7 @@ wse_precip_fig <- plot_grid(
     axis.text.x = element_blank(),
     axis.title.x = element_blank()
     ),
-  precip_fig + scale_x_date(limits = c(wy_2025_start_date, wy_2025_end_date),
+  fig_precip_2025 + scale_x_date(limits = c(as.Date(wy_2025_start_date), as.Date(wy_2025_end_date)),
                             expand = c(0,NA),
                             date_breaks = "3 month",
                             date_labels = "%b %Y"),
@@ -383,15 +409,19 @@ wse_precip_fig <- plot_grid(
 
 wse_precip_fig
 
-#save to file
-ggsave(filename = paste("figures/2025_wy_wse_precip_",
+# save to file
+ggsave(filename = paste0("figures/water_levels/y8/2025_wy_wse_precip_",
                                     format(Sys.time(), "%Y-%m-%d"),
-                                     ".pdf"), 
+                                     ".png"), 
                                     plot = wse_precip_fig,
-       width = 8.6,
-       height = 6.4,
+       bg = "white",
+       width = 6.5,
+       height = 5,
        units = "in"
        )
+
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ----
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ ----
 
 # combine Campus Lagoon data into one dataframe ----
 
@@ -417,12 +447,12 @@ lagoon_2025_wy_c <- read_csv(
          comp_level_ft = level) %>% 
   select(-c(date:ms, level))
 
-#combine three shorter timeseries into one covering most of 2025 water year
+# combine three shorter timeseries into one covering most of 2025 water year
 lagoon_20250924_20260303 <- bind_rows(lagoon_2025_wy_a, lagoon_2025_wy_b,
                                     lagoon_2025_wy_c)
 
 write_csv(lagoon_20250924_20260303, 
           "data/leveloggers/Campus_Lagoon/CampusLagoon_09.24.25_03.03.26_Compensated.csv")
 
-#declutter
+# declutter
 remove(lagoon_2025_wy_a, lagoon_2025_wy_b, lagoon_2025_wy_c)
