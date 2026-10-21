@@ -1,3 +1,12 @@
+
+# define breaks for start and end dates ----
+start_date <- as.Date("2024-09-01")
+end_date   <- as.Date("2025-09-01")
+
+# Create custom breaks every 2 weeks (or your preferred interval)
+my_breaks <- seq(from = start_date, to = end_date, by = "3 months")
+
+
 # uses inputs from other scripts
 
 date_scale <-   scale_x_date(
