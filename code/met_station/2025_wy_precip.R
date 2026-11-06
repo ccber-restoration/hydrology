@@ -69,8 +69,10 @@ very_wet_days <- water_year_2025 %>%
 
 # total precip
 sum(water_year_2025$prcp)
-
 # total rainfall for water year = 10.98 inches
+
+
+# Daily precip figure for 2025 water year ----
 fig_precip_2025 <- ggplot(data = water_year_2025, aes(x = date, y = prcp)) +
   geom_col(color = "darkblue") +
   ylab("Daily rainfall (in)") +
