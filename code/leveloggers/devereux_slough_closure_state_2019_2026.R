@@ -130,5 +130,5 @@ ggsave(paste0("figures/mouth/year8/dev_slough_mouth_closure_timeline_2019_2025_m
        fig_mouth_closure_comb,
        bg = "white",
        width = 7,
-       height = 5)
+       height = 3.5)
 
