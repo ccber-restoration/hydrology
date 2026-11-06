@@ -258,8 +258,13 @@ annual_rainfall_NCOS <- daily_rain %>%
 annual_rainfall_NCOS_y1_8 <- annual_rainfall_NCOS |> 
   filter(lwy <2026)
 
+# write this to rds file for use in other repos 
+write_rds(annual_rainfall_NCOS_y1_8, file = "data/NOAA_weather_station/annual_rainfall_NCOS_y1_8.rds")
+
 annual_rainfall_NCOS_y1_9 <- annual_rainfall_NCOS |> 
   filter(lwy <2027)
+
+write_rds(annual_rainfall_NCOS_y1_9, file = "data/NOAA_weather_station/annual_rainfall_NCOS_y1_9.rds")
 
 
 # create bar plots
