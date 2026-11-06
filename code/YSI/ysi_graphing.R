@@ -65,6 +65,19 @@ end_date   <- as.Date("2025-09-01")
 my_breaks <- seq(from = start_date, to = end_date, by = "3 months")
 
 
+# Check stratification of DO ----
+fig_2025_DO_depths <- ggplot(data = ysi_joined_2025, aes(x = monitoring_date, y = do_mg_l, group = depth_code, color = depth_code)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(vars(site_name), nrow = 3)
+
+fig_2025_DO_depths
+
+ggplotly(fig_2025_DO_depths)
+
+ggsave(filename = "figures/water_quality/year_8/DO_stratification_check.png",
+       fig_2025_DO_depths)
+
 # Average across depths ----
 
 # average across depths
